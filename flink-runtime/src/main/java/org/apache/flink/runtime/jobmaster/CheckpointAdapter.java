@@ -47,12 +47,12 @@ public class CheckpointAdapter {
                     new TimerTask() {
                         @Override
                         public void run() {
-                            log.info(changeInterval + " has passed, change checkpoint interval!");
+                            log.info(checkInterval + " has passed, change checkpoint interval!");
                             updatePeriod(minPeriod);
                         }
                     },
-                    changeInterval,
-                    changeInterval);
+                    checkInterval,
+                    checkInterval);
 
             // deal with data as much as it can in one period
             while (isAdapterEnable) {
@@ -78,12 +78,12 @@ public class CheckpointAdapter {
                     new TimerTask() {
                         @Override
                         public void run() {
-                            log.info(changeInterval + " has passed, change checkpoint interval!");
+                            log.info(checkInterval + " has passed, change checkpoint interval!");
                             updatePeriod(minPeriod);
                         }
                     },
-                    changeInterval,
-                    changeInterval);
+                    checkInterval,
+                    checkInterval);
 
             while (isAdapterEnable) {
                 if (queue.size() > 0) {
@@ -92,45 +92,6 @@ public class CheckpointAdapter {
                         if (isOverAllowRange(p)) {
                             log.info("over allowRange, store minPeriod");
                             minPeriod = Math.min(p, minPeriod);
-                        }
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-                }
-            }
-        }
-    }
-
-    final class ConsumerDebounce implements Runnable {
-        private long minPeriod = Long.MAX_VALUE;
-        private Timer timer = new Timer();
-
-        @Override
-        public void run() {
-            while (isAdapterEnable) {
-                if (queue.size() > 0) {
-                    // Since it is difficult to maintain a single number all the time, this
-                    // allowRange ensures that the timer will not be cancelled as long as it varies
-                    // within a certain range
-                    try {
-                        long p = queue.take() * 1000; // transfer to ms
-                        if (isOverAllowRange(p)) {
-                            log.info("over allowRange, store minPeriod");
-                            minPeriod = Math.min(p, minPeriod);
-                            timer.cancel();
-                            timer = new Timer();
-                            log.info("start timer, change interval: " + changeInterval);
-                            timer.schedule(
-                                    new TimerTask() {
-                                        @Override
-                                        public void run() {
-                                            log.info(
-                                                    "start timer and change interval after "
-                                                            + changeInterval);
-                                            updatePeriod(minPeriod);
-                                        }
-                                    },
-                                    changeInterval);
                         }
                     } catch (InterruptedException e) {
                         e.printStackTrace();
@@ -148,7 +109,7 @@ public class CheckpointAdapter {
 
     private final long recoveryTime;
     private final double allowRange;
-    private final long changeInterval;
+    private final long checkInterval;
 
     protected final Logger log = LoggerFactory.getLogger(getClass());
 
@@ -164,27 +125,20 @@ public class CheckpointAdapter {
 
         this.recoveryTime = checkpointAdapterConfiguration.getRecoveryTime();
         this.allowRange = checkpointAdapterConfiguration.getAllowRange();
-        this.changeInterval = checkpointAdapterConfiguration.getChangeInterval();
-        boolean isDebounceMode = checkpointAdapterConfiguration.isDebounceMode();
+        this.checkInterval = checkpointAdapterConfiguration.getCheckInterval();
 
-        boolean withPeriod = changeInterval > 0;
+        boolean withPeriod = checkInterval > 0;
         boolean withRange = allowRange > 0;
-        log.info("changeInterval:" + changeInterval);
+        log.info("checkInterval:" + checkInterval);
         log.info("allowRange:" + allowRange);
-        log.info("isDebounceMode:" + isDebounceMode);
         if (withPeriod || withRange) {
             ThreadPoolExecutor executor =
                     new ThreadPoolExecutor(
                             3, 10, 60, TimeUnit.SECONDS, new ArrayBlockingQueue<>(20));
             Runnable consumer;
             if (withPeriod && withRange) {
-                if (isDebounceMode) {
-                    log.info("set up a <Debounce> consumer");
-                    consumer = new ConsumerDebounce();
-                } else {
-                    log.info("set up a <Range & Period> consumer");
-                    consumer = new ConsumerRangePeriod();
-                }
+                log.info("set up a <Range & Period> consumer");
+                consumer = new ConsumerRangePeriod();
             } else if (withPeriod) {
                 log.info("set up a <Period> consumer");
                 consumer = new ConsumerPeriod();

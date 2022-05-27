@@ -25,7 +25,7 @@ public class CheckpointAdapterConfig {
      * set, period is reset with the smallest value for each cycle, regardless of whether an
      * out-of-range change has occurred.
      */
-    private long changeInterval = -1;
+    private long checkInterval = -1;
     /**
      * If this value is true. You must both set allowRange and changePeriod Changes are triggered
      * only if the data stays at a level (allowRange) for a period of time (changePeriod).
@@ -36,8 +36,8 @@ public class CheckpointAdapterConfig {
         this.allowRange = allowRange;
     }
 
-    public void setChangeInterval(long changeInterval) {
-        this.changeInterval = changeInterval;
+    public void setCheckInterval(long checkInterval) {
+        this.checkInterval = checkInterval;
     }
 
     public void setDebounceMode(boolean debounceMode) {
@@ -48,8 +48,8 @@ public class CheckpointAdapterConfig {
         return allowRange;
     }
 
-    public long getChangeInterval() {
-        return changeInterval;
+    public long getCheckInterval() {
+        return checkInterval;
     }
 
     public boolean isDebounceMode() {
@@ -77,7 +77,7 @@ public class CheckpointAdapterConfig {
         checkNotNull(config);
         this.recoveryTime = config.recoveryTime;
         this.allowRange = config.allowRange;
-        this.changeInterval = config.changeInterval;
+        this.checkInterval = config.checkInterval;
         this.metricsInterval = config.metricsInterval;
         this.isDebounceMode = config.isDebounceMode;
     }

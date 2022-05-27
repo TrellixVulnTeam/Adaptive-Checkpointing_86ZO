@@ -44,7 +44,7 @@ public class JobCheckpointAdapterConfiguration implements Serializable {
      * set, period is reset with the smallest value for each cycle, regardless of whether an
      * out-of-range change has occurred
      */
-    private long changeInterval;
+    private long checkInterval;
     /**
      * If this value is true. You must both set allowRange and changePeriod Changes are triggered
      * only if the data stays at a level (allowRange) for a period of time (changePeriod)
@@ -63,8 +63,8 @@ public class JobCheckpointAdapterConfiguration implements Serializable {
         return allowRange;
     }
 
-    public long getChangeInterval() {
-        return changeInterval;
+    public long getCheckInterval() {
+        return checkInterval;
     }
 
     public boolean isDebounceMode() {
@@ -83,8 +83,8 @@ public class JobCheckpointAdapterConfiguration implements Serializable {
         this.allowRange = allowRange;
     }
 
-    public void setChangeInterval(long changeInterval) {
-        this.changeInterval = changeInterval;
+    public void setCheckInterval(long checkInterval) {
+        this.checkInterval = checkInterval;
     }
 
     public void setDebounceMode(boolean debounceMode) {
@@ -99,12 +99,12 @@ public class JobCheckpointAdapterConfiguration implements Serializable {
             long recoveryTime,
             long metricsInterval,
             double allowRange,
-            long changeInterval,
+            long checkInterval,
             boolean isDebounceMode) {
         this.recoveryTime = recoveryTime;
         this.metricsInterval = metricsInterval;
         this.allowRange = allowRange;
-        this.changeInterval = changeInterval;
+        this.checkInterval = checkInterval;
         this.isDebounceMode = isDebounceMode;
     }
 
@@ -122,7 +122,7 @@ public class JobCheckpointAdapterConfiguration implements Serializable {
                         + ","
                         + allowRange
                         + ","
-                        + changeInterval
+                        + checkInterval
                         + ","
                         + isDebounceMode);
     }
