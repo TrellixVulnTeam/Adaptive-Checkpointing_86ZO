@@ -13,23 +13,19 @@ public class CheckpointAdapterConfig {
      * The interval between data submissions of taskExecutor, The default timing is -1 , which means
      * commit once after completing a checkpoint.
      */
-    @Deprecated
-    private long metricsInterval = -1;
+    @Deprecated private long metricsInterval = -1;
     /**
      * A new period calculated from the metrics outside this range triggers a period change
      * operation default value is 30%.
      */
     private double allowRange = 0.3;
-    /**
-     * How often the checkpoint adapter checks for updates, operation default value is 1000ms.
-     */
+    /** How often the checkpoint adapter checks for updates, operation default value is 1000ms. */
     private long checkInterval = 1000;
     /**
      * If this value is true. You must both set allowRange and changePeriod Changes are triggered
      * only if the data stays at a level (allowRange) for a period of time (changePeriod).
      */
-    @Deprecated
-    private boolean isDebounceMode = false;
+    @Deprecated private boolean isDebounceMode = false;
 
     public void setAllowRange(double allowRange) {
         this.allowRange = allowRange;

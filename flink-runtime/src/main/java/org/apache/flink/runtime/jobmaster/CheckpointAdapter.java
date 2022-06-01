@@ -37,8 +37,12 @@ public class CheckpointAdapter {
 
         @Override
         public void run() {
-            if (history.size() <= 0) return;
-            log.info(interval + "ms passed, calculate a new period, if over allowRange change the checkpoint interval!");
+            if (history.size() <= 0) {
+                return;
+            }
+            log.info(
+                    interval
+                            + "ms passed, calculate a new period, if over allowRange change the checkpoint interval!");
             // find bottleneck of all task. Map keeps the latest metrics
             List<Long> periods = new ArrayList<>(history.values());
             Collections.sort(periods, (x, y) -> (int) (x - y));
@@ -95,7 +99,7 @@ public class CheckpointAdapter {
             return true;
         }
 
-        ExecutionAttemptID id =  taskManagerRunningState.getExecutionId();
+        ExecutionAttemptID id = taskManagerRunningState.getExecutionId();
         history.put(id, newPeriod);
         return true;
     }
