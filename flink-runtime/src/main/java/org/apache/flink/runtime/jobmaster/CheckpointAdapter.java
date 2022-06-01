@@ -18,86 +18,10 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 public class CheckpointAdapter {
-    final class ConsumerRange implements Runnable {
+    final class Consumer implements Runnable {
         @Override
         public void run() {
-            while (isAdapterEnable) {
-                if (queue.size() > 0) {
-                    try {
-                        long p = queue.take() * 1000; // transfer to ms
-                        if (isOverAllowRange(p)) {
-                            log.info("over allowRange, change checkpoint interval");
-                            updatePeriod(p);
-                        }
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-                }
-            }
-        }
-    }
 
-    final class ConsumerPeriod implements Runnable {
-        private long minPeriod = Long.MAX_VALUE;
-        private final Timer timer = new Timer();
-
-        @Override
-        public void run() {
-            timer.scheduleAtFixedRate(
-                    new TimerTask() {
-                        @Override
-                        public void run() {
-                            log.info(checkInterval + " has passed, change checkpoint interval!");
-                            updatePeriod(minPeriod);
-                        }
-                    },
-                    checkInterval,
-                    checkInterval);
-
-            // deal with data as much as it can in one period
-            while (isAdapterEnable) {
-                if (queue.size() > 0) {
-                    try {
-                        long p = queue.take() * 1000; // transfer to ms
-                        minPeriod = Math.min(p, minPeriod);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-                }
-            }
-        }
-    }
-
-    final class ConsumerRangePeriod implements Runnable {
-        private long minPeriod = Long.MAX_VALUE;
-        private final Timer timer = new Timer();
-
-        @Override
-        public void run() {
-            timer.scheduleAtFixedRate(
-                    new TimerTask() {
-                        @Override
-                        public void run() {
-                            log.info(checkInterval + " has passed, change checkpoint interval!");
-                            updatePeriod(minPeriod);
-                        }
-                    },
-                    checkInterval,
-                    checkInterval);
-
-            while (isAdapterEnable) {
-                if (queue.size() > 0) {
-                    try {
-                        long p = queue.take() * 1000; // transfer to ms
-                        if (isOverAllowRange(p)) {
-                            log.info("over allowRange, store minPeriod");
-                            minPeriod = Math.min(p, minPeriod);
-                        }
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-                }
-            }
         }
     }
 
@@ -135,17 +59,7 @@ public class CheckpointAdapter {
             ThreadPoolExecutor executor =
                     new ThreadPoolExecutor(
                             3, 10, 60, TimeUnit.SECONDS, new ArrayBlockingQueue<>(20));
-            Runnable consumer;
-            if (withPeriod && withRange) {
-                log.info("set up a <Range & Period> consumer");
-                consumer = new ConsumerRangePeriod();
-            } else if (withPeriod) {
-                log.info("set up a <Period> consumer");
-                consumer = new ConsumerPeriod();
-            } else {
-                log.info("set up a <Range> consumer");
-                consumer = new ConsumerRange();
-            }
+            Runnable consumer = new Consumer();
             CompletableFuture.runAsync(consumer, executor).thenRunAsync(executor::shutdown);
         }
     }

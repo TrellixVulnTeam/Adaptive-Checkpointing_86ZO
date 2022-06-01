@@ -1748,12 +1748,7 @@ public class CheckpointCoordinator {
             if (shutdown) {
                 throw new IllegalArgumentException("Checkpoint coordinator is shut down");
             }
-
-            // make sure all prior timers are cancelled
-            stopCheckpointScheduler();
-
-            periodicScheduling = true;
-            currentPeriodicTrigger = scheduleTriggerWithDelay(getRandomInitDelay());
+            rescheduleTrigger(getRandomInitDelay());
         }
     }
 
