@@ -1334,7 +1334,7 @@ public class Task
             double busyTimeMsPerSecond = taskIOMetricGroup.getBusyTimePerSecond();
             double idealProcessingRate = throughput * 1000 / busyTimeMsPerSecond;
             taskManagerActions.submitTaskExecutorRunningStatus(
-                    new TaskManagerRunningState(executionId,  throughput, idealProcessingRate));
+                    new TaskManagerRunningState(executionId, throughput, idealProcessingRate));
         }
     }
     /**
@@ -1458,8 +1458,7 @@ public class Task
             double busyTimeMsPerSecond = taskIOMetricGroup.getBusyTimePerSecond();
             double idealProcessingRate = throughput * 1000 / busyTimeMsPerSecond;
             taskManagerActions.submitTaskExecutorRunningStatus(
-                    new TaskManagerRunningState(
-                            executionId, throughput, idealProcessingRate));
+                    new TaskManagerRunningState(executionId, throughput, idealProcessingRate));
         }
 
         if (executionState == ExecutionState.RUNNING) {
