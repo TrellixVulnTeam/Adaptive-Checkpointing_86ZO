@@ -46,6 +46,8 @@ public class CheckpointAdapter {
             // find bottleneck of all task. Map keeps the latest metrics
             List<Long> periods = new ArrayList<>(history.values());
             Collections.sort(periods, (x, y) -> (int) (x - y));
+            // Find the smallest value in all current tasks(bottleneck) and compare it with the
+            // threshold to decide whether to update
             long minPeriod = periods.get(0);
             if (isOverAllowRange(minPeriod)) {
                 updatePeriod(minPeriod);

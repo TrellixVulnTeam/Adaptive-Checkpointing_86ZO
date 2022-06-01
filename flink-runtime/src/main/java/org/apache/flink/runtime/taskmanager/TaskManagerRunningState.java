@@ -38,8 +38,6 @@ public class TaskManagerRunningState implements Serializable {
 
     private final double idealProcessingRate;
 
-    private final long checkpointID;
-
     /**
      * Creates a new task execution state update, with an attached exception. This constructor may
      * never throw an exception.
@@ -48,7 +46,6 @@ public class TaskManagerRunningState implements Serializable {
      */
     public TaskManagerRunningState(
             ExecutionAttemptID executionId,
-            long checkpointID,
             double numRecordsInRate,
             double idealProcessingRate) {
 
@@ -59,7 +56,6 @@ public class TaskManagerRunningState implements Serializable {
         this.executionId = executionId;
         this.numRecordsInRate = numRecordsInRate;
         this.idealProcessingRate = idealProcessingRate;
-        this.checkpointID = checkpointID;
     }
 
     public ExecutionAttemptID getExecutionId() {
@@ -72,10 +68,6 @@ public class TaskManagerRunningState implements Serializable {
 
     public double getIdealProcessingRate() {
         return idealProcessingRate;
-    }
-
-    public long getCheckpointID() {
-        return checkpointID;
     }
 
     @Override
