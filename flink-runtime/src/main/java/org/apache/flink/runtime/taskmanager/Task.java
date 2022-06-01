@@ -93,6 +93,7 @@ import org.apache.flink.util.clock.SystemClock;
 import org.apache.flink.util.concurrent.FutureUtils;
 import org.apache.flink.util.function.RunnableWithException;
 
+import org.mortbay.log.Log;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -103,6 +104,7 @@ import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -304,10 +306,16 @@ public class Task
 
     /** If submit metrics data to jobMaster once after completing a checkpoint */
     private boolean isSubmitAfterCheckpoint = true;
+
     /** If broadcastSubmissionParams doesn't be called, value is false */
     private boolean isAdapterEnable = false;
+
     /** Periodically submit data to jobMaster */
-    private Timer timer = new Timer();
+    private Timer timer;
+
+    /** TimerTask to get metrics periodically and submit */
+    private TimerTask metricsThread;
+
     /**
      * <b>IMPORTANT:</b> This constructor may not start any work that would need to be undone in the
      * case of a failing task deployment.
@@ -400,6 +408,9 @@ public class Task
         this.partitionProducerStateChecker =
                 Preconditions.checkNotNull(partitionProducerStateChecker);
         this.executor = Preconditions.checkNotNull(executor);
+
+        this.timer = new Timer();
+        this.metricsThread = new InnerMetricsThread(1000L);    // TODO: check if there's a way to avoid hard-coding
 
         // create the reader and writer structures
 
@@ -1105,7 +1116,8 @@ public class Task
                         newState);
                 if (newState == ExecutionState.RUNNING) {
                     // not waiting for result, result will be added to task automatically
-                    taskManagerActions.requestCheckpointAdapterConfig(executionId);
+                    // taskManagerActions.requestCheckpointAdapterConfig(executionId);
+                    metricsThread.run();
                 }
             } else {
                 LOG.warn(
@@ -1317,24 +1329,87 @@ public class Task
     // ------------------------------------------------------------------------
     //  Notifications on the invokable
     // ------------------------------------------------------------------------
-    private class InnerTimerTask extends TimerTask {
-        private long interval;
+    //    private class InnerTimerTask extends TimerTask {
+    //        private long interval;
+    //
+    //        public InnerTimerTask(long internal) {
+    //            this.interval = internal;
+    //        }
+    //
+    //        @Override
+    //        public void run() {
+    //            LOG.info(interval + "ms passed, submit metrics!");
+    //            TaskIOMetricGroup taskIOMetricGroup =
+    //                    metrics.getIOMetricGroup(); // include numRecordIn + busy
+    //            Meter numRecordsInRate = taskIOMetricGroup.getNumRecordsInRate();
+    //            double throughput = numRecordsInRate.getRate();
+    //            double busyTimeMsPerSecond = taskIOMetricGroup.getBusyTimePerSecond();
+    //            double idealProcessingRate = throughput * 1000 / busyTimeMsPerSecond;
+    //            taskManagerActions.submitTaskExecutorRunningStatus(
+    //                    new TaskManagerRunningState(executionId, -1, throughput, idealProcessingRate));
+    //        }
+    //    }
 
-        public InnerTimerTask(long internal) {
-            this.interval = internal;
+    private class InnerMetricsThread extends TimerTask {
+        ArrayList<Double> throughputRecords;
+        ArrayList<Double> idealProcessingRateRecords;
+        double throughputRecordsSum = 0;
+        double rateRecordsSum = 0;
+        double previousThroughputAverage = 0;
+        double previousRateAverage = 0;
+        private static final int recordNum = 100;
+        private final long interval;
+
+        public InnerMetricsThread(long interval) {
+            this.throughputRecords = new ArrayList<>();
+            this.idealProcessingRateRecords = new ArrayList<>();
+            this.interval = interval;
         }
 
         @Override
         public void run() {
-            LOG.info(interval + "ms passed, submit metrics!");
-            TaskIOMetricGroup taskIOMetricGroup =
-                    metrics.getIOMetricGroup(); // include numRecordIn + busy
+            LOG.info(interval + "ms passed, get metrics!");
+            TaskIOMetricGroup taskIOMetricGroup = metrics.getIOMetricGroup();
             Meter numRecordsInRate = taskIOMetricGroup.getNumRecordsInRate();
             double throughput = numRecordsInRate.getRate();
             double busyTimeMsPerSecond = taskIOMetricGroup.getBusyTimePerSecond();
             double idealProcessingRate = throughput * 1000 / busyTimeMsPerSecond;
-            taskManagerActions.submitTaskExecutorRunningStatus(
-                    new TaskManagerRunningState(executionId, -1, throughput, idealProcessingRate));
+            LOG.info("Get throughput {}, get ideal processing rate {}",
+                    throughput, idealProcessingRate);
+            if(throughputRecords.size() == recordNum) {
+                double deleteThroughput = throughputRecords.remove(0);
+                throughputRecordsSum -= deleteThroughput;
+            }
+            if(idealProcessingRateRecords.size() == recordNum) {
+                double deleteRate = idealProcessingRateRecords.get(0);
+                rateRecordsSum -= deleteRate;
+            }
+            throughputRecords.add(throughput);
+            throughputRecordsSum += throughput;
+            idealProcessingRateRecords.add(idealProcessingRate);
+            rateRecordsSum += idealProcessingRate;
+            if(needSubmitMetrics(previousThroughputAverage,
+                    throughputRecordsSum/throughputRecords.size(),
+                    previousRateAverage,
+                    rateRecordsSum/idealProcessingRateRecords.size())) {
+                LOG.info("Task {} call task executor to submit metrics", executionId);
+                taskManagerActions.submitTaskExecutorRunningStatus(
+                        new TaskManagerRunningState(executionId, -1, throughput, idealProcessingRate));
+            }
+        }
+
+        private boolean needSubmitMetrics(double previousThroughputAverage,
+                                          double currentThroughputAverage,
+                                          double previousRateAverage,
+                                          double currentRateAverage) {
+            if(previousThroughputAverage == 0 || previousRateAverage == 0) {
+                return true;
+            }
+            // TODO: The below strategy is meaningless, need to modify later.
+            return Math.abs(
+                    currentThroughputAverage - previousThroughputAverage)
+                    / previousThroughputAverage > 0.2 || Math.abs(
+                    currentRateAverage - previousRateAverage) / previousRateAverage > 0.2;
         }
     }
     /**
@@ -1342,18 +1417,18 @@ public class Task
      *
      * @param interval Set the interval at which the checkpoint is reported.
      */
-    public void triggerMetricsSubmission(boolean isCkpAdapterEnable, long interval) {
-        isAdapterEnable = isCkpAdapterEnable;
-        if (interval == -1) {
-            isSubmitAfterCheckpoint = true;
-        } else {
-            isSubmitAfterCheckpoint = false;
-            // set timer
-            TimerTask task = new InnerTimerTask(interval);
-            timer.scheduleAtFixedRate(task, interval, interval);
-            // TODO: cancel timer ?
-        }
-    }
+    //    public void triggerMetricsSubmission(boolean isCkpAdapterEnable, long interval) {
+    //        isAdapterEnable = isCkpAdapterEnable;
+    //        if (interval == -1) {
+    //            isSubmitAfterCheckpoint = true;
+    //        } else {
+    //            isSubmitAfterCheckpoint = false;
+    //            // set timer
+    //            TimerTask task = new InnerTimerTask(interval);
+    //            timer.scheduleAtFixedRate(task, interval, interval);
+    //            // TODO: cancel timer ?
+    //        }
+    //    }
 
     /**
      * Calls the invokable to trigger a checkpoint.
