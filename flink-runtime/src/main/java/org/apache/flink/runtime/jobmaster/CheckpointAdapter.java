@@ -1,6 +1,7 @@
 package org.apache.flink.runtime.jobmaster;
 
 import org.apache.flink.runtime.checkpoint.CheckpointCoordinator;
+import org.apache.flink.runtime.executiongraph.ExecutionAttemptID;
 import org.apache.flink.runtime.jobgraph.tasks.CheckpointCoordinatorConfiguration;
 import org.apache.flink.runtime.jobgraph.tasks.JobCheckpointAdapterConfiguration;
 import org.apache.flink.runtime.taskmanager.TaskManagerRunningState;
@@ -8,149 +9,51 @@ import org.apache.flink.runtime.taskmanager.TaskManagerRunningState;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class CheckpointAdapter {
-    final class ConsumerRange implements Runnable {
-        @Override
-        public void run() {
-            while (isAdapterEnable) {
-                if (queue.size() > 0) {
-                    try {
-                        long p = queue.take() * 1000; // transfer to ms
-                        if (isOverAllowRange(p)) {
-                            log.info("over allowRange, change checkpoint interval");
-                            updatePeriod(p);
-                        }
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-                }
-            }
-        }
-    }
-
-    final class ConsumerPeriod implements Runnable {
-        private long minPeriod = Long.MAX_VALUE;
-        private final Timer timer = new Timer();
-
-        @Override
-        public void run() {
-            timer.scheduleAtFixedRate(
-                    new TimerTask() {
-                        @Override
-                        public void run() {
-                            log.info(changeInterval + " has passed, change checkpoint interval!");
-                            updatePeriod(minPeriod);
-                        }
-                    },
-                    changeInterval,
-                    changeInterval);
-
-            // deal with data as much as it can in one period
-            while (isAdapterEnable) {
-                if (queue.size() > 0) {
-                    try {
-                        long p = queue.take() * 1000; // transfer to ms
-                        minPeriod = Math.min(p, minPeriod);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-                }
-            }
-        }
-    }
-
-    final class ConsumerRangePeriod implements Runnable {
-        private long minPeriod = Long.MAX_VALUE;
-        private final Timer timer = new Timer();
-
-        @Override
-        public void run() {
-            timer.scheduleAtFixedRate(
-                    new TimerTask() {
-                        @Override
-                        public void run() {
-                            log.info(changeInterval + " has passed, change checkpoint interval!");
-                            updatePeriod(minPeriod);
-                        }
-                    },
-                    changeInterval,
-                    changeInterval);
-
-            while (isAdapterEnable) {
-                if (queue.size() > 0) {
-                    try {
-                        long p = queue.take() * 1000; // transfer to ms
-                        if (isOverAllowRange(p)) {
-                            log.info("over allowRange, store minPeriod");
-                            minPeriod = Math.min(p, minPeriod);
-                        }
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-                }
-            }
-        }
-    }
-
-    final class ConsumerDebounce implements Runnable {
-        private long minPeriod = Long.MAX_VALUE;
-        private Timer timer = new Timer();
-
-        @Override
-        public void run() {
-            while (isAdapterEnable) {
-                if (queue.size() > 0) {
-                    // Since it is difficult to maintain a single number all the time, this
-                    // allowRange ensures that the timer will not be cancelled as long as it varies
-                    // within a certain range
-                    try {
-                        long p = queue.take() * 1000; // transfer to ms
-                        if (isOverAllowRange(p)) {
-                            log.info("over allowRange, store minPeriod");
-                            minPeriod = Math.min(p, minPeriod);
-                            timer.cancel();
-                            timer = new Timer();
-                            log.info("start timer, change interval: " + changeInterval);
-                            timer.schedule(
-                                    new TimerTask() {
-                                        @Override
-                                        public void run() {
-                                            log.info(
-                                                    "start timer and change interval after "
-                                                            + changeInterval);
-                                            updatePeriod(minPeriod);
-                                        }
-                                    },
-                                    changeInterval);
-                        }
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-                }
-            }
-        }
-    }
-
     private JobCheckpointAdapterConfiguration checkpointAdapterConfiguration;
     private long baseInterval;
     private final CheckpointCoordinator coordinator;
     private boolean isAdapterEnable;
-    private final BlockingQueue<Long> queue;
-
+    private Timer timer = new Timer();
+    private final ConcurrentHashMap<ExecutionAttemptID, Long> history;
     private final long recoveryTime;
     private final double allowRange;
-    private final long changeInterval;
-
+    private final long checkInterval;
     protected final Logger log = LoggerFactory.getLogger(getClass());
+
+    private class InnerTimerTask extends TimerTask {
+        private final long interval;
+
+        public InnerTimerTask(long internal) {
+            this.interval = internal;
+        }
+
+        @Override
+        public void run() {
+            if (history.size() <= 0) {
+                return;
+            }
+            log.info(
+                    interval
+                            + "ms passed, calculate a new period, if over allowRange change the checkpoint interval!");
+            // find bottleneck of all task. Map keeps the latest metrics
+            List<Long> periods = new ArrayList<>(history.values());
+            Collections.sort(periods, (x, y) -> (int) (x - y));
+            // Find the smallest value in all current tasks(bottleneck) and compare it with the
+            // threshold to decide whether to update
+            long minPeriod = periods.get(0);
+            if (isOverAllowRange(minPeriod)) {
+                updatePeriod(minPeriod);
+            }
+        }
+    }
 
     public CheckpointAdapter(
             CheckpointCoordinatorConfiguration chkConfig,
@@ -160,40 +63,14 @@ public class CheckpointAdapter {
         this.coordinator = coordinator;
         this.baseInterval = chkConfig.getCheckpointInterval();
         this.isAdapterEnable = true;
-        this.queue = new LinkedBlockingQueue<>();
+        this.history = new ConcurrentHashMap<>();
 
         this.recoveryTime = checkpointAdapterConfiguration.getRecoveryTime();
         this.allowRange = checkpointAdapterConfiguration.getAllowRange();
-        this.changeInterval = checkpointAdapterConfiguration.getChangeInterval();
-        boolean isDebounceMode = checkpointAdapterConfiguration.isDebounceMode();
+        this.checkInterval = checkpointAdapterConfiguration.getCheckInterval();
 
-        boolean withPeriod = changeInterval > 0;
-        boolean withRange = allowRange > 0;
-        log.info("changeInterval:" + changeInterval);
-        log.info("allowRange:" + allowRange);
-        log.info("isDebounceMode:" + isDebounceMode);
-        if (withPeriod || withRange) {
-            ThreadPoolExecutor executor =
-                    new ThreadPoolExecutor(
-                            3, 10, 60, TimeUnit.SECONDS, new ArrayBlockingQueue<>(20));
-            Runnable consumer;
-            if (withPeriod && withRange) {
-                if (isDebounceMode) {
-                    log.info("set up a <Debounce> consumer");
-                    consumer = new ConsumerDebounce();
-                } else {
-                    log.info("set up a <Range & Period> consumer");
-                    consumer = new ConsumerRangePeriod();
-                }
-            } else if (withPeriod) {
-                log.info("set up a <Period> consumer");
-                consumer = new ConsumerPeriod();
-            } else {
-                log.info("set up a <Range> consumer");
-                consumer = new ConsumerRange();
-            }
-            CompletableFuture.runAsync(consumer, executor).thenRunAsync(executor::shutdown);
-        }
+        TimerTask task = new InnerTimerTask(checkInterval);
+        timer.scheduleAtFixedRate(task, checkInterval, checkInterval);
     }
 
     public void setAdapterEnable(boolean adapterEnable) {
@@ -209,10 +86,6 @@ public class CheckpointAdapter {
             TaskManagerRunningState taskManagerRunningState) {
         double ideal = taskManagerRunningState.getIdealProcessingRate();
         double inputRate = taskManagerRunningState.getNumRecordsInRate();
-        long checkpointID = taskManagerRunningState.getCheckpointID();
-        final String message =
-                "ideal: " + ideal + " inputRate: " + inputRate + " checkpointID: " + checkpointID;
-        log.info(message);
 
         // dealt with initial NaN
         if (Double.isNaN(ideal) || Double.isNaN(inputRate)) {
@@ -228,11 +101,8 @@ public class CheckpointAdapter {
             return true;
         }
 
-        try {
-            queue.put(newPeriod);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+        ExecutionAttemptID id = taskManagerRunningState.getExecutionId();
+        history.put(id, newPeriod);
         return true;
     }
 

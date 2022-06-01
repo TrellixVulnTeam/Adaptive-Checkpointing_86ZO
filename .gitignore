@@ -18,8 +18,8 @@ tmp
 .DS_Store
 _site
 docs/api
-flink-runtime-web
-build-target
+/flink-runtime-web/
+/build-target/
 ##############################
 ## Java
 ##############################

@@ -1394,7 +1394,7 @@ public class Task
                     rateRecordsSum/idealProcessingRateRecords.size())) {
                 LOG.info("Task {} call task executor to submit metrics", executionId);
                 taskManagerActions.submitTaskExecutorRunningStatus(
-                        new TaskManagerRunningState(executionId, -1, throughput, idealProcessingRate));
+                        new TaskManagerRunningState(executionId, throughput, idealProcessingRate));
             }
         }
 
@@ -1534,7 +1534,7 @@ public class Task
             double idealProcessingRate = throughput * 1000 / busyTimeMsPerSecond;
             taskManagerActions.submitTaskExecutorRunningStatus(
                     new TaskManagerRunningState(
-                            executionId, checkpointID, throughput, idealProcessingRate));
+                            executionId, throughput, idealProcessingRate));
         }
 
         if (executionState == ExecutionState.RUNNING) {
