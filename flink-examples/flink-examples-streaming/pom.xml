@@ -139,7 +139,7 @@ under the License.
 							</filters>
 							<transformers>
 								<transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-styl									<mainClass>org.apache.flink.streaming.examples.clusterdata.kafkajob.MaxTaskCompletionTimeFromKafka</mainClass>
+									<mainClass>org.apache.flink.streaming.examples.clusterdata.kafkajob.MaxTaskCompletionTimeFromKafka</mainClass>
 								</transformer>
 							</transformers>
 						</configuration>
