@@ -45,9 +45,7 @@ public class TaskManagerRunningState implements Serializable {
      * @param executionId the ID of the task execution whose state is to be reported
      */
     public TaskManagerRunningState(
-            ExecutionAttemptID executionId,
-            double numRecordsInRate,
-            double idealProcessingRate) {
+            ExecutionAttemptID executionId, double numRecordsInRate, double idealProcessingRate) {
 
         if (executionId == null) {
             throw new NullPointerException();

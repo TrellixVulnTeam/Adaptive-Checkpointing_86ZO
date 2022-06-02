@@ -93,7 +93,6 @@ import org.apache.flink.util.clock.SystemClock;
 import org.apache.flink.util.concurrent.FutureUtils;
 import org.apache.flink.util.function.RunnableWithException;
 
-import org.mortbay.log.Log;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -410,7 +409,8 @@ public class Task
         this.executor = Preconditions.checkNotNull(executor);
 
         this.timer = new Timer();
-        this.metricsThread = new InnerMetricsThread(1000L);    // TODO: check if there's a way to avoid hard-coding
+        this.metricsThread =
+                new InnerMetricsThread(1000L); // TODO: check if there's a way to avoid hard-coding
 
         // create the reader and writer structures
 
@@ -1346,7 +1346,8 @@ public class Task
     //            double busyTimeMsPerSecond = taskIOMetricGroup.getBusyTimePerSecond();
     //            double idealProcessingRate = throughput * 1000 / busyTimeMsPerSecond;
     //            taskManagerActions.submitTaskExecutorRunningStatus(
-    //                    new TaskManagerRunningState(executionId, -1, throughput, idealProcessingRate));
+    //                    new TaskManagerRunningState(executionId, -1, throughput,
+    // idealProcessingRate));
     //        }
     //    }
 
@@ -1374,13 +1375,15 @@ public class Task
             double throughput = numRecordsInRate.getRate();
             double busyTimeMsPerSecond = taskIOMetricGroup.getBusyTimePerSecond();
             double idealProcessingRate = throughput * 1000 / busyTimeMsPerSecond;
-            LOG.info("Get throughput {}, get ideal processing rate {}",
-                    throughput, idealProcessingRate);
-            if(throughputRecords.size() == recordNum) {
+            LOG.info(
+                    "Get throughput {}, get ideal processing rate {}",
+                    throughput,
+                    idealProcessingRate);
+            if (throughputRecords.size() == recordNum) {
                 double deleteThroughput = throughputRecords.remove(0);
                 throughputRecordsSum -= deleteThroughput;
             }
-            if(idealProcessingRateRecords.size() == recordNum) {
+            if (idealProcessingRateRecords.size() == recordNum) {
                 double deleteRate = idealProcessingRateRecords.get(0);
                 rateRecordsSum -= deleteRate;
             }
@@ -1388,28 +1391,31 @@ public class Task
             throughputRecordsSum += throughput;
             idealProcessingRateRecords.add(idealProcessingRate);
             rateRecordsSum += idealProcessingRate;
-            if(needSubmitMetrics(previousThroughputAverage,
-                    throughputRecordsSum/throughputRecords.size(),
+            if (needSubmitMetrics(
+                    previousThroughputAverage,
+                    throughputRecordsSum / throughputRecords.size(),
                     previousRateAverage,
-                    rateRecordsSum/idealProcessingRateRecords.size())) {
+                    rateRecordsSum / idealProcessingRateRecords.size())) {
                 LOG.info("Task {} call task executor to submit metrics", executionId);
                 taskManagerActions.submitTaskExecutorRunningStatus(
                         new TaskManagerRunningState(executionId, throughput, idealProcessingRate));
             }
         }
 
-        private boolean needSubmitMetrics(double previousThroughputAverage,
-                                          double currentThroughputAverage,
-                                          double previousRateAverage,
-                                          double currentRateAverage) {
-            if(previousThroughputAverage == 0 || previousRateAverage == 0) {
+        private boolean needSubmitMetrics(
+                double previousThroughputAverage,
+                double currentThroughputAverage,
+                double previousRateAverage,
+                double currentRateAverage) {
+            if (previousThroughputAverage == 0 || previousRateAverage == 0) {
                 return true;
             }
             // TODO: The below strategy is meaningless, need to modify later.
-            return Math.abs(
-                    currentThroughputAverage - previousThroughputAverage)
-                    / previousThroughputAverage > 0.2 || Math.abs(
-                    currentRateAverage - previousRateAverage) / previousRateAverage > 0.2;
+            return Math.abs(currentThroughputAverage - previousThroughputAverage)
+                                    / previousThroughputAverage
+                            > 0.2
+                    || Math.abs(currentRateAverage - previousRateAverage) / previousRateAverage
+                            > 0.2;
         }
     }
     /**
@@ -1533,8 +1539,7 @@ public class Task
             double busyTimeMsPerSecond = taskIOMetricGroup.getBusyTimePerSecond();
             double idealProcessingRate = throughput * 1000 / busyTimeMsPerSecond;
             taskManagerActions.submitTaskExecutorRunningStatus(
-                    new TaskManagerRunningState(
-                            executionId, throughput, idealProcessingRate));
+                    new TaskManagerRunningState(executionId, throughput, idealProcessingRate));
         }
 
         if (executionState == ExecutionState.RUNNING) {

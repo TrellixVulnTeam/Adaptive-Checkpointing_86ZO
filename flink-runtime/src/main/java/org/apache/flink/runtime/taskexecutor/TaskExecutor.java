@@ -21,7 +21,6 @@ package org.apache.flink.runtime.taskexecutor;
 import org.apache.flink.annotation.VisibleForTesting;
 import org.apache.flink.api.common.JobID;
 import org.apache.flink.api.common.time.Time;
-import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.management.jmx.JMXService;
 import org.apache.flink.runtime.accumulators.AccumulatorSnapshot;
 import org.apache.flink.runtime.blob.BlobCacheService;
@@ -1859,7 +1858,8 @@ public class TaskExecutor extends RpcEndpoint implements TaskExecutorGateway {
     //                        task.triggerMetricsSubmission(isAdatperEnable, interval);
     //                    } else {
     //                        final String message =
-    //                                "TaskManager received a adapter setting request for unknown task "
+    //                                "TaskManager received a adapter setting request for unknown
+    // task "
     //                                        + executionAttemptID
     //                                        + '.';
     //
@@ -1882,9 +1882,7 @@ public class TaskExecutor extends RpcEndpoint implements TaskExecutorGateway {
         final ExecutionAttemptID executionAttemptID = taskManagerRunningState.getExecutionId();
 
         final String message =
-                "ExecutionID: "
-                        + executionAttemptID
-                        + " submitTaskManagerRunningState!";
+                "ExecutionID: " + executionAttemptID + " submitTaskManagerRunningState!";
         log.info(message);
 
         CompletableFuture<Acknowledge> futureAcknowledge =
@@ -2395,13 +2393,17 @@ public class TaskExecutor extends RpcEndpoint implements TaskExecutorGateway {
         @Override
         public void submitTaskExecutorRunningStatus(
                 final TaskManagerRunningState taskManagerRunningState) {
-            runAsync(() -> TaskExecutor.this.submitTaskManagerRunningState(
-                    jobMasterGateway, taskManagerRunningState));
+            runAsync(
+                    () ->
+                            TaskExecutor.this.submitTaskManagerRunningState(
+                                    jobMasterGateway, taskManagerRunningState));
         }
 
         //        @Override
-        //        public void requestCheckpointAdapterConfig(ExecutionAttemptID executionAttemptID) {
-        //            TaskExecutor.this.requestCheckpointAdapterConfig(jobMasterGateway, executionAttemptID);
+        //        public void requestCheckpointAdapterConfig(ExecutionAttemptID executionAttemptID)
+        // {
+        //            TaskExecutor.this.requestCheckpointAdapterConfig(jobMasterGateway,
+        // executionAttemptID);
         //        }
     }
 

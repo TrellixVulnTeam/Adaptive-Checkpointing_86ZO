@@ -1408,7 +1408,7 @@ public class JobMasterTest extends TestLogger {
             jobMasterGateway
                     .submitTaskManagerRunningState(
                             new TaskManagerRunningState(
-                                    executionAttemptId,  throughput, idealProcessingRate))
+                                    executionAttemptId, throughput, idealProcessingRate))
                     .get();
 
             // request the state of the result partition of the producer
