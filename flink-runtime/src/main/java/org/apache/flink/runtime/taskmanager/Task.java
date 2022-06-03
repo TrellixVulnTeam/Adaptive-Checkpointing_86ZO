@@ -311,6 +311,7 @@ public class Task
 
     /** Periodically submit data to jobMaster */
     private Timer timer;
+
     private final long TIMER_INTERVAL = 1000;
 
     /**
