@@ -1840,42 +1840,6 @@ public class TaskExecutor extends RpcEndpoint implements TaskExecutorGateway {
         }
     }
 
-    //    private void requestCheckpointAdapterConfig(
-    //            final JobMasterGateway jobMasterGateway, ExecutionAttemptID executionAttemptID) {
-    //        CompletableFuture<Tuple2<Boolean, Long>> configFuture =
-    //                jobMasterGateway.requestMetricsInterval();
-    //
-    //        configFuture.thenAccept(
-    //                config -> {
-    //                    boolean isAdatperEnable = config.f0;
-    //                    long interval = config.f1;
-    //                    log.info(
-    //                            "set checkpoint adapter submitting parameters {} for {}.",
-    //                            executionAttemptID,
-    //                            interval);
-    //                    final Task task = taskSlotTable.getTask(executionAttemptID);
-    //                    if (task != null) {
-    //                        task.triggerMetricsSubmission(isAdatperEnable, interval);
-    //                    } else {
-    //                        final String message =
-    //                                "TaskManager received a adapter setting request for unknown
-    // task "
-    //                                        + executionAttemptID
-    //                                        + '.';
-    //
-    //                        log.debug(message);
-    //                    }
-    //                });
-    //
-    //        configFuture.whenCompleteAsync(
-    //                (ack, throwable) -> {
-    //                    if (throwable != null) {
-    //                        log.error(throwable.getMessage());
-    //                    }
-    //                },
-    //                getMainThreadExecutor());
-    //    }
-
     private void submitTaskManagerRunningState(
             final JobMasterGateway jobMasterGateway,
             final TaskManagerRunningState taskManagerRunningState) {
@@ -2393,18 +2357,9 @@ public class TaskExecutor extends RpcEndpoint implements TaskExecutorGateway {
         @Override
         public void submitTaskExecutorRunningStatus(
                 final TaskManagerRunningState taskManagerRunningState) {
-            runAsync(
-                    () ->
-                            TaskExecutor.this.submitTaskManagerRunningState(
-                                    jobMasterGateway, taskManagerRunningState));
+            TaskExecutor.this.submitTaskManagerRunningState(
+                    jobMasterGateway, taskManagerRunningState);
         }
-
-        //        @Override
-        //        public void requestCheckpointAdapterConfig(ExecutionAttemptID executionAttemptID)
-        // {
-        //            TaskExecutor.this.requestCheckpointAdapterConfig(jobMasterGateway,
-        // executionAttemptID);
-        //        }
     }
 
     private class SlotActionsImpl implements SlotActions {

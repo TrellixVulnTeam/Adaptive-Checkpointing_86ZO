@@ -311,9 +311,7 @@ public class Task
 
     /** Periodically submit data to jobMaster */
     private Timer timer;
-
-    /** TimerTask to get metrics periodically and submit */
-    private TimerTask metricsThread;
+    private final long TIMER_INTERVAL = 1000;
 
     /**
      * <b>IMPORTANT:</b> This constructor may not start any work that would need to be undone in the
@@ -409,9 +407,6 @@ public class Task
         this.executor = Preconditions.checkNotNull(executor);
 
         this.timer = new Timer();
-        this.metricsThread =
-                new InnerMetricsThread(1000L); // TODO: check if there's a way to avoid hard-coding
-
         // create the reader and writer structures
 
         final String taskNameWithSubtaskAndId = taskNameWithSubtask + " (" + executionId + ')';
@@ -1117,7 +1112,8 @@ public class Task
                 if (newState == ExecutionState.RUNNING) {
                     // not waiting for result, result will be added to task automatically
                     // taskManagerActions.requestCheckpointAdapterConfig(executionId);
-                    metricsThread.run();
+                    InnerMetricsThread metricsThread = new InnerMetricsThread(TIMER_INTERVAL);
+                    timer.scheduleAtFixedRate(metricsThread, TIMER_INTERVAL, TIMER_INTERVAL);
                 }
             } else {
                 LOG.warn(
@@ -1329,28 +1325,6 @@ public class Task
     // ------------------------------------------------------------------------
     //  Notifications on the invokable
     // ------------------------------------------------------------------------
-    //    private class InnerTimerTask extends TimerTask {
-    //        private long interval;
-    //
-    //        public InnerTimerTask(long internal) {
-    //            this.interval = internal;
-    //        }
-    //
-    //        @Override
-    //        public void run() {
-    //            LOG.info(interval + "ms passed, submit metrics!");
-    //            TaskIOMetricGroup taskIOMetricGroup =
-    //                    metrics.getIOMetricGroup(); // include numRecordIn + busy
-    //            Meter numRecordsInRate = taskIOMetricGroup.getNumRecordsInRate();
-    //            double throughput = numRecordsInRate.getRate();
-    //            double busyTimeMsPerSecond = taskIOMetricGroup.getBusyTimePerSecond();
-    //            double idealProcessingRate = throughput * 1000 / busyTimeMsPerSecond;
-    //            taskManagerActions.submitTaskExecutorRunningStatus(
-    //                    new TaskManagerRunningState(executionId, -1, throughput,
-    // idealProcessingRate));
-    //        }
-    //    }
-
     private class InnerMetricsThread extends TimerTask {
         ArrayList<Double> throughputRecords;
         ArrayList<Double> idealProcessingRateRecords;
@@ -1384,7 +1358,7 @@ public class Task
                 throughputRecordsSum -= deleteThroughput;
             }
             if (idealProcessingRateRecords.size() == recordNum) {
-                double deleteRate = idealProcessingRateRecords.get(0);
+                double deleteRate = idealProcessingRateRecords.remove(0);
                 rateRecordsSum -= deleteRate;
             }
             throughputRecords.add(throughput);
@@ -1418,23 +1392,6 @@ public class Task
                             > 0.2;
         }
     }
-    /**
-     * Schedule metrics submission to checkpoint adapter in jobmaster
-     *
-     * @param interval Set the interval at which the checkpoint is reported.
-     */
-    //    public void triggerMetricsSubmission(boolean isCkpAdapterEnable, long interval) {
-    //        isAdapterEnable = isCkpAdapterEnable;
-    //        if (interval == -1) {
-    //            isSubmitAfterCheckpoint = true;
-    //        } else {
-    //            isSubmitAfterCheckpoint = false;
-    //            // set timer
-    //            TimerTask task = new InnerTimerTask(interval);
-    //            timer.scheduleAtFixedRate(task, interval, interval);
-    //            // TODO: cancel timer ?
-    //        }
-    //    }
 
     /**
      * Calls the invokable to trigger a checkpoint.
