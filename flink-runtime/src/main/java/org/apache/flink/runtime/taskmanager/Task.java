@@ -1373,62 +1373,62 @@ public class Task
             if (previousRateAverage == 0) {
                 rateChangePercentage = 0;
             } else {
-                rateChangePercentage = (rateAverage - previousRateAverage) / previousRateAverage;
+                rateChangePercentage =
+                        (rateAverage - previousRateAverage) / previousRateAverage;
             }
             previousThrAverage = thrAverage;
             previousRateAverage = rateAverage;
 
             // add to the record array list
-            if(thrChangeRecords.size() == recordNum) {
+            if (thrChangeRecords.size() == recordNum) {
                 thrChangeRecords.remove(0);
             }
-            if(rateChangeRecords.size() == recordNum) {
+            if (rateChangeRecords.size() == recordNum) {
                 rateChangeRecords.remove(0);
             }
             thrChangeRecords.add(thrChangePercentage);
             rateChangeRecords.add(rateChangePercentage);
 
             // third get average of 4 change percentage to check if needed to submit metrics
-
-
-
-            //            if (throughputRecords.size() == recordNum) {
-            //                double deleteThroughput = throughputRecords.remove(0);
-            //                throughputRecordsSum -= deleteThroughput;
-            //            }
-            //            if (idealProcessingRateRecords.size() == recordNum) {
-            //                double deleteRate = idealProcessingRateRecords.remove(0);
-            //                rateRecordsSum -= deleteRate;
-            //            }
-            //            throughputRecords.add(throughput);
-            //            throughputRecordsSum += throughput;
-            //            idealProcessingRateRecords.add(idealProcessingRate);
-            //            rateRecordsSum += idealProcessingRate;
-            //            if (needSubmitMetrics(
-            //                    previousThrAverage,
-            //                    throughputRecordsSum / throughputRecords.size(),
-            //                    previousRateAverage,
-            //                    rateRecordsSum / idealProcessingRateRecords.size())) {
-            //                LOG.info("Task {} call task executor to submit metrics", executionId);
-            //                taskManagerActions.submitTaskExecutorRunningStatus(
-            //                        new TaskManagerRunningState(executionId, throughput, idealProcessingRate));
-            //            }
+            double averageThrChange = getAverage(thrChangeRecords);
+            double averageRateChange = getAverage(rateChangeRecords);
+            if (averageThrChange <= decThresholdForCounting
+                    || averageThrChange >= incThresholdForCounting) {
+                thrCounter++;
+                if (thrCounter == counterThresholdForSubmission) {
+                    taskManagerActions.submitTaskExecutorRunningStatus(
+                            new TaskManagerRunningState(
+                                    executionId,
+                                    throughput,
+                                    idealProcessingRate));
+                    thrCounter = 0;
+                }
+            } else {
+                thrCounter = 0;
+            }
+            if (averageRateChange <= decThresholdForCounting
+                    || averageRateChange >= incThresholdForCounting) {
+                rateCounter++;
+                if (rateCounter == counterThresholdForSubmission) {
+                    taskManagerActions.submitTaskExecutorRunningStatus(
+                            new TaskManagerRunningState(
+                                    executionId,
+                                    throughput,
+                                    idealProcessingRate));
+                    rateCounter = 0;
+                }
+            } else {
+                rateCounter = 0;
+            }
         }
 
-        private boolean needSubmitMetrics(
-                double previousThroughputAverage,
-                double currentThroughputAverage,
-                double previousRateAverage,
-                double currentRateAverage) {
-            if (previousThroughputAverage == 0 || previousRateAverage == 0) {
-                return true;
+        private double getAverage(ArrayList<Double> arrayList) {
+            if (arrayList.size() == 0) return 0;
+            double sum = 0;
+            for (double d: arrayList) {
+                sum += d;
             }
-            // TODO: The below strategy is meaningless, need to modify later.
-            return Math.abs(currentThroughputAverage - previousThroughputAverage)
-                                    / previousThroughputAverage
-                            > 0.2
-                    || Math.abs(currentRateAverage - previousRateAverage) / previousRateAverage
-                            > 0.2;
+            return sum / arrayList.size();
         }
     }
 
