@@ -1327,18 +1327,21 @@ public class Task
     //  Notifications on the invokable
     // ------------------------------------------------------------------------
     private class InnerMetricsThread extends TimerTask {
-        ArrayList<Double> throughputRecords;
-        ArrayList<Double> idealProcessingRateRecords;
-        double throughputRecordsSum = 0;
-        double rateRecordsSum = 0;
-        double previousThroughputAverage = 0;
+        ArrayList<Double> thrChangeRecords;
+        ArrayList<Double> rateChangeRecords;
+        double previousThrAverage = 0;
         double previousRateAverage = 0;
-        private static final int recordNum = 100;
+        int thrCounter = 0;
+        int rateCounter = 0;
+        private static final int counterThresholdForSubmission = 3;
+        private static final int recordNum = 4;
+        private static final double incThresholdForCounting = 0.25;
+        private static final double decThresholdForCounting = -0.1;
         private final long interval;
 
         public InnerMetricsThread(long interval) {
-            this.throughputRecords = new ArrayList<>();
-            this.idealProcessingRateRecords = new ArrayList<>();
+            this.thrChangeRecords = new ArrayList<>();
+            this.rateChangeRecords = new ArrayList<>();
             this.interval = interval;
         }
 
@@ -1354,27 +1357,62 @@ public class Task
                     "Get throughput {}, get ideal processing rate {}",
                     throughput,
                     idealProcessingRate);
-            if (throughputRecords.size() == recordNum) {
-                double deleteThroughput = throughputRecords.remove(0);
-                throughputRecordsSum -= deleteThroughput;
+
+            // first get exponential moving averages
+            double thrAverage = 0.8 * throughput + 0.2 * previousThrAverage;
+            double rateAverage = 0.8 * idealProcessingRate + 0.2 * previousRateAverage;
+
+            // second get the percentage of change
+            double thrChangePercentage;
+            double rateChangePercentage;
+            if (previousThrAverage == 0) {
+                thrChangePercentage = 0;
+            } else {
+                thrChangePercentage = (thrAverage - previousThrAverage) / previousThrAverage;
             }
-            if (idealProcessingRateRecords.size() == recordNum) {
-                double deleteRate = idealProcessingRateRecords.remove(0);
-                rateRecordsSum -= deleteRate;
+            if (previousRateAverage == 0) {
+                rateChangePercentage = 0;
+            } else {
+                rateChangePercentage = (rateAverage - previousRateAverage) / previousRateAverage;
             }
-            throughputRecords.add(throughput);
-            throughputRecordsSum += throughput;
-            idealProcessingRateRecords.add(idealProcessingRate);
-            rateRecordsSum += idealProcessingRate;
-            if (needSubmitMetrics(
-                    previousThroughputAverage,
-                    throughputRecordsSum / throughputRecords.size(),
-                    previousRateAverage,
-                    rateRecordsSum / idealProcessingRateRecords.size())) {
-                LOG.info("Task {} call task executor to submit metrics", executionId);
-                taskManagerActions.submitTaskExecutorRunningStatus(
-                        new TaskManagerRunningState(executionId, throughput, idealProcessingRate));
+            previousThrAverage = thrAverage;
+            previousRateAverage = rateAverage;
+
+            // add to the record array list
+            if(thrChangeRecords.size() == recordNum) {
+                thrChangeRecords.remove(0);
             }
+            if(rateChangeRecords.size() == recordNum) {
+                rateChangeRecords.remove(0);
+            }
+            thrChangeRecords.add(thrChangePercentage);
+            rateChangeRecords.add(rateChangePercentage);
+
+            // third get average of 4 change percentage to check if needed to submit metrics
+
+
+
+            //            if (throughputRecords.size() == recordNum) {
+            //                double deleteThroughput = throughputRecords.remove(0);
+            //                throughputRecordsSum -= deleteThroughput;
+            //            }
+            //            if (idealProcessingRateRecords.size() == recordNum) {
+            //                double deleteRate = idealProcessingRateRecords.remove(0);
+            //                rateRecordsSum -= deleteRate;
+            //            }
+            //            throughputRecords.add(throughput);
+            //            throughputRecordsSum += throughput;
+            //            idealProcessingRateRecords.add(idealProcessingRate);
+            //            rateRecordsSum += idealProcessingRate;
+            //            if (needSubmitMetrics(
+            //                    previousThrAverage,
+            //                    throughputRecordsSum / throughputRecords.size(),
+            //                    previousRateAverage,
+            //                    rateRecordsSum / idealProcessingRateRecords.size())) {
+            //                LOG.info("Task {} call task executor to submit metrics", executionId);
+            //                taskManagerActions.submitTaskExecutorRunningStatus(
+            //                        new TaskManagerRunningState(executionId, throughput, idealProcessingRate));
+            //            }
         }
 
         private boolean needSubmitMetrics(
