@@ -1333,6 +1333,8 @@ public class Task
         double previousRateAverage = 0;
         int thrCounter = 0;
         int rateCounter = 0;
+        boolean thrIncreasing = true;
+        boolean rateIncreasing = true;
         private static final int counterThresholdForSubmission = 3;
         private static final int recordNum = 4;
         private static final double incThresholdForCounting = 0.25;
@@ -1358,11 +1360,11 @@ public class Task
                     throughput,
                     idealProcessingRate);
 
-            // first get exponential moving averages
+            // 1. get exponential moving averages
             double thrAverage = 0.8 * throughput + 0.2 * previousThrAverage;
             double rateAverage = 0.8 * idealProcessingRate + 0.2 * previousRateAverage;
 
-            // second get the percentage of change
+            // 2. get the percentage of change
             double thrChangePercentage;
             double rateChangePercentage;
             if (previousThrAverage == 0) {
@@ -1373,8 +1375,7 @@ public class Task
             if (previousRateAverage == 0) {
                 rateChangePercentage = 0;
             } else {
-                rateChangePercentage =
-                        (rateAverage - previousRateAverage) / previousRateAverage;
+                rateChangePercentage = (rateAverage - previousRateAverage) / previousRateAverage;
             }
             previousThrAverage = thrAverage;
             previousRateAverage = rateAverage;
@@ -1389,46 +1390,90 @@ public class Task
             thrChangeRecords.add(thrChangePercentage);
             rateChangeRecords.add(rateChangePercentage);
 
-            // third get average of 4 change percentage to check if needed to submit metrics
+            // 3. get average of 4 change percentage to check if needed to submit metrics
             double averageThrChange = getAverage(thrChangeRecords);
             double averageRateChange = getAverage(rateChangeRecords);
-            if (averageThrChange <= decThresholdForCounting
-                    || averageThrChange >= incThresholdForCounting) {
-                thrCounter++;
-                if (thrCounter == counterThresholdForSubmission) {
-                    taskManagerActions.submitTaskExecutorRunningStatus(
-                            new TaskManagerRunningState(
-                                    executionId,
-                                    throughput,
-                                    idealProcessingRate));
-                    thrCounter = 0;
-                }
-            } else {
-                thrCounter = 0;
-            }
-            if (averageRateChange <= decThresholdForCounting
-                    || averageRateChange >= incThresholdForCounting) {
-                rateCounter++;
-                if (rateCounter == counterThresholdForSubmission) {
-                    taskManagerActions.submitTaskExecutorRunningStatus(
-                            new TaskManagerRunningState(
-                                    executionId,
-                                    throughput,
-                                    idealProcessingRate));
-                    rateCounter = 0;
-                }
-            } else {
-                rateCounter = 0;
+            if (needSubmitMetrics(averageThrChange, averageRateChange)) {
+                taskManagerActions.submitTaskExecutorRunningStatus(
+                        new TaskManagerRunningState(executionId, throughput, idealProcessingRate));
             }
         }
 
         private double getAverage(ArrayList<Double> arrayList) {
             if (arrayList.size() == 0) return 0;
             double sum = 0;
-            for (double d: arrayList) {
+            for (double d : arrayList) {
                 sum += d;
             }
             return sum / arrayList.size();
+        }
+
+        private boolean needSubmitMetrics(double averageThrChange, double averageRateChange) {
+            boolean modifiedThr = false;
+            boolean modifiedRate = false;
+            if (averageThrChange > incThresholdForCounting) {
+                if (this.thrIncreasing) {
+                    this.thrCounter++;
+                } else {
+                    this.thrIncreasing = true;
+                    this.thrCounter = 1;
+                }
+                modifiedThr = true;
+                if (this.thrCounter >= counterThresholdForSubmission) {
+                    this.thrCounter = 0;
+                    this.rateCounter = 0;
+                    return true;
+                }
+            }
+            if (averageThrChange < decThresholdForCounting) {
+                if (!this.thrIncreasing) {
+                    this.thrCounter++;
+                } else {
+                    this.thrIncreasing = false;
+                    this.thrCounter = 1;
+                }
+                modifiedThr = true;
+                if (this.thrCounter >= counterThresholdForSubmission) {
+                    this.thrCounter = 0;
+                    this.rateCounter = 0;
+                    return true;
+                }
+            }
+            if (averageRateChange > incThresholdForCounting) {
+                if (this.rateIncreasing) {
+                    this.rateCounter++;
+                } else {
+                    this.rateIncreasing = true;
+                    this.rateCounter = 1;
+                }
+                modifiedRate = true;
+                if (this.rateCounter >= counterThresholdForSubmission) {
+                    this.thrCounter = 0;
+                    this.rateCounter = 0;
+                    return true;
+                }
+            }
+            if (averageRateChange < decThresholdForCounting) {
+                if (!this.rateIncreasing) {
+                    this.rateCounter++;
+                } else {
+                    this.rateIncreasing = false;
+                    this.rateCounter = 1;
+                }
+                modifiedRate = true;
+                if (this.rateCounter >= counterThresholdForSubmission) {
+                    this.thrCounter = 0;
+                    this.rateCounter = 0;
+                    return true;
+                }
+            }
+            if (!modifiedThr) {
+                thrCounter = 0;
+            }
+            if (!modifiedRate) {
+                rateCounter = 0;
+            }
+            return false;
         }
     }
 
