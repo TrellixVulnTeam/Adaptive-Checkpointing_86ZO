@@ -71,7 +71,7 @@ public class Query3Stateful {
         final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
 
         env.enableCheckpointing(5000, CheckpointingMode.AT_LEAST_ONCE);
-
+        env.enableCheckpointAdapter(100000);
         // enable latency tracking
         env.getConfig().setLatencyTrackingInterval(60000);
 

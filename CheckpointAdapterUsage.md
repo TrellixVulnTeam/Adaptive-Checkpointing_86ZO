@@ -7,10 +7,8 @@
 enableCheckpointAdapter()
 enableCheckpointAdapter(long recoveryTime)
 // before setting params, you must enable a checkpoint adapter
-setCheckpointAdapterMetricInterval(long metricInterval)
 setCheckpointAdapterAllowRange(double allowRange)
-setCheckpointAdapterChangeInterval(long changeInterval)
-setCheckpointAdapterDebounceMode(boolean debounceMode)
+setCheckpointAdapterCheckInterval(long changeInterval)
 ```
 Each checkpoint adapter mainly includes 2 parts, so make sure
 you set up **_these 2 parts and periodic checkpoint_** properly, 
