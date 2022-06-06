@@ -1,5 +1,6 @@
 package flink.utils;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import org.apache.beam.sdk.nexmark.NexmarkUtils;
 import org.apache.beam.sdk.nexmark.model.Bid;
 
@@ -14,6 +15,7 @@ public class BidSchema implements DeserializationSchema<Bid>, SerializationSchem
     public Bid deserialize(byte[] message) {
         Bid bid  = null;
         try {
+            // according to Bid.toString()
             bid = NexmarkUtils.MAPPER.readValue(message, Bid.class);
         } catch (Exception e) {
             e.printStackTrace();
@@ -28,11 +30,16 @@ public class BidSchema implements DeserializationSchema<Bid>, SerializationSchem
 
     @Override
     public byte[] serialize(Bid element) {
-        return element.toString().getBytes();
+        try {
+            // according to Bid.toString()
+            return NexmarkUtils.MAPPER.writeValueAsBytes(element);
+        } catch (JsonProcessingException var2) {
+            throw new RuntimeException(var2);
+        }
     }
 
     @Override
     public TypeInformation<Bid> getProducedType() {
-        return TypeExtractor.getForClass(Bid.class);
+        return TypeInformation.of(Bid.class);
     }
 }
