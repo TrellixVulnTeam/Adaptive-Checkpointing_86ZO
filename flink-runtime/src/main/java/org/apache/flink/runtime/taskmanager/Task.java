@@ -1112,9 +1112,7 @@ public class Task
                         newState);
                 if (newState == ExecutionState.RUNNING) {
                     // not waiting for result, result will be added to task automatically
-                    // taskManagerActions.requestCheckpointAdapterConfig(executionId);
-                    InnerMetricsThread metricsThread = new InnerMetricsThread(TIMER_INTERVAL);
-                    timer.scheduleAtFixedRate(metricsThread, TIMER_INTERVAL, TIMER_INTERVAL);
+                    taskManagerActions.requestCheckpointAdapterConfig(executionId);
                 }
             } else {
                 LOG.warn(
@@ -1474,6 +1472,23 @@ public class Task
                 rateCounter = 0;
             }
             return false;
+        }
+    }
+
+    /**
+     * Schedule metrics submission to checkpoint adapter in jobmaster
+     *
+     * @param interval Set the interval at which the checkpoint is reported.
+     */
+    public void triggerMetricsSubmission(boolean isCkpAdapterEnable, long interval) {
+        isAdapterEnable = isCkpAdapterEnable;
+        if (interval == -1) {
+            isSubmitAfterCheckpoint = true;
+        } else {
+            isSubmitAfterCheckpoint = false;
+            // set timer
+            InnerMetricsThread metricsThread = new InnerMetricsThread(TIMER_INTERVAL);
+            timer.scheduleAtFixedRate(metricsThread, TIMER_INTERVAL, TIMER_INTERVAL);
         }
     }
 
