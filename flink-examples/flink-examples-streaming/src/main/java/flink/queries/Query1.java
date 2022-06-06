@@ -41,31 +41,6 @@ public class Query1 {
     private static final Logger logger = LoggerFactory.getLogger(Query1.class);
 
     public static void main(String[] args) throws Exception {
-        // Checking input parameters
-        final ParameterTool params = ParameterTool.fromArgs(args);
-        final float exchangeRate = params.getFloat("exchange-rate", 0.82F);
-        String ratelist = params.getRequired("ratelist");
-
-        //  --ratelist 250_300000_11000_300000
-        int[] numbers = Arrays.stream(ratelist.split("_")).mapToInt(Integer::parseInt).toArray();
-        System.out.println(Arrays.toString(numbers));
-        List<List<Integer>> rates = new ArrayList<>();
-        /* The internal list will be [rate, time in ms]
-        //        rates.add(Arrays.asList(25000, 3000000));
-                int runningperiod=1*60*60*1000;    //1h
-                rates.add(Arrays.asList(150000, runningperiod));
-                rates.add(Arrays.asList(1000, runningperiod));
-                rates.add(Arrays.asList(1000, runningperiod));
-                rates.add(Arrays.asList(1000, runningperiod));
-                rates.add(Arrays.asList(1000, runningperiod));
-                rates.add(Arrays.asList(1000, runningperiod));
-                rates.add(Arrays.asList(1000, runningperiod));
-                rates.add(Arrays.asList(1000, runningperiod));
-                rates.add(Arrays.asList(1000, runningperiod));
-                */
-        for (int i = 0; i < numbers.length - 1; i += 2) {
-            rates.add(Arrays.asList(numbers[i], numbers[i + 1]));
-        }
 
         // set up the execution environment
         final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
