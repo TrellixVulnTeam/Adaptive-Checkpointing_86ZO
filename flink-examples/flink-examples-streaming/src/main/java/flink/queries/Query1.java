@@ -18,33 +18,59 @@
 
 package flink.queries;
 
+import org.apache.flink.api.common.eventtime.WatermarkStrategy;
 import org.apache.flink.api.common.functions.MapFunction;
 import org.apache.flink.api.java.tuple.Tuple4;
 import org.apache.flink.api.java.typeutils.GenericTypeInfo;
 import org.apache.flink.api.java.utils.ParameterTool;
+import org.apache.flink.connector.kafka.source.KafkaSource;
+import org.apache.flink.connector.kafka.source.KafkaSourceOptions;
+import org.apache.flink.connector.kafka.source.enumerator.initializer.OffsetsInitializer;
+import org.apache.flink.connector.kafka.source.reader.deserializer.KafkaRecordDeserializationSchema;
+import org.apache.flink.contrib.streaming.state.EmbeddedRocksDBStateBackend;
 import org.apache.flink.streaming.api.CheckpointingMode;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 
 import flink.sinks.DummyLatencyCountingSink;
-import flink.sources.BidSourceFunction;
+import flink.utils.BidSchema;
 import org.apache.beam.sdk.nexmark.model.Bid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 
 public class Query1 {
 
     private static final Logger logger = LoggerFactory.getLogger(Query1.class);
 
     public static void main(String[] args) throws Exception {
+        System.out.println("Options for both the above setups: ");
+        System.out.println("\t[--kafka-topic <topic>]");
+        System.out.println("\t[--kafka-group <group>]");
+        System.out.println("\t[--broker <broker>]");
+        System.out.println("\t[--exchange-rate <exchange-rate>]");
+        System.out.println("\t[--checkpoint-dir <filepath>]");
+        System.out.println("\t[--incremental-checkpoints <true|false>]");
+        System.out.println();
+
+        // Checking input parameters
+        //  --kafka-topic <topic>
+        //  --broker <broker>
+        final ParameterTool params = ParameterTool.fromArgs(args);
+        final float exchangeRate = params.getFloat("exchange-rate", 0.82F);
+        final String broker = params.getRequired("broker");
+        final String kafkaTopic = params.getRequired("kafka-topic");
+        final String kafkaGroup = params.getRequired("kafka-group");
+        System.out.printf(
+                "Reading from kafka topic %s @ %s group: %s\n", kafkaTopic, broker, kafkaGroup);
+        System.out.println();
+        final String checkpointDir = params.get("checkpoint-dir");
+        boolean incrementalCheckpoints = params.getBoolean("incremental-checkpoints", false);
 
         // set up the execution environment
         final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
 
+        env.setStateBackend(new EmbeddedRocksDBStateBackend(incrementalCheckpoints));
+        env.getCheckpointConfig().setCheckpointStorage(checkpointDir);
         env.enableCheckpointing(5000, CheckpointingMode.AT_LEAST_ONCE);
 
         env.disableOperatorChaining();
@@ -52,13 +78,24 @@ public class Query1 {
         // enable latency tracking
         env.getConfig().setLatencyTrackingInterval(60000);
 
+        KafkaSource<Bid> source =
+                KafkaSource.<Bid>builder()
+                        .setBootstrapServers(broker)
+                        .setGroupId(kafkaGroup)
+                        .setTopics(kafkaTopic)
+                        .setDeserializer(
+                                KafkaRecordDeserializationSchema.valueOnly(new BidSchema()))
+                        .setProperty(
+                                KafkaSourceOptions.REGISTER_KAFKA_CONSUMER_METRICS.key(), "true")
+                        // If each partition has a committed offset, the offset will be consumed
+                        // from the committed offset.
+                        // Start consuming from scratch when there is no submitted offset
+                        .setStartingOffsets(OffsetsInitializer.earliest())
+                        .build();
+
         DataStream<Bid> bids =
-                env.addSource(new BidSourceFunction(rates))
-                        .setParallelism(params.getInt("p-source", 1))
-                        .name("Bids Source")
-                        .uid("Bids-Source");
-        // .slotSharingGroup("src");
-        // SELECT auction, DOLTOEUR(price), bidder, datetime
+                env.fromSource(source, WatermarkStrategy.noWatermarks(), "Kafka source");
+
         DataStream<Tuple4<Long, Long, Long, Long>> mapped =
                 bids.map(
                                 new MapFunction<Bid, Tuple4<Long, Long, Long, Long>>() {
