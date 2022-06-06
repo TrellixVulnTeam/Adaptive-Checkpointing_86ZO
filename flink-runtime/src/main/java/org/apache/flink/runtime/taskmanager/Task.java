@@ -103,6 +103,7 @@ import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -304,10 +305,15 @@ public class Task
 
     /** If submit metrics data to jobMaster once after completing a checkpoint */
     private boolean isSubmitAfterCheckpoint = true;
+
     /** If broadcastSubmissionParams doesn't be called, value is false */
     private boolean isAdapterEnable = false;
+
     /** Periodically submit data to jobMaster */
-    private Timer timer = new Timer();
+    private Timer timer;
+
+    private final long TIMER_INTERVAL = 1000;
+
     /**
      * <b>IMPORTANT:</b> This constructor may not start any work that would need to be undone in the
      * case of a failing task deployment.
@@ -401,6 +407,7 @@ public class Task
                 Preconditions.checkNotNull(partitionProducerStateChecker);
         this.executor = Preconditions.checkNotNull(executor);
 
+        this.timer = new Timer();
         // create the reader and writer structures
 
         final String taskNameWithSubtaskAndId = taskNameWithSubtask + " (" + executionId + ')';
@@ -1105,7 +1112,9 @@ public class Task
                         newState);
                 if (newState == ExecutionState.RUNNING) {
                     // not waiting for result, result will be added to task automatically
-                    taskManagerActions.requestCheckpointAdapterConfig(executionId);
+                    // taskManagerActions.requestCheckpointAdapterConfig(executionId);
+                    InnerMetricsThread metricsThread = new InnerMetricsThread(TIMER_INTERVAL);
+                    timer.scheduleAtFixedRate(metricsThread, TIMER_INTERVAL, TIMER_INTERVAL);
                 }
             } else {
                 LOG.warn(
@@ -1317,41 +1326,154 @@ public class Task
     // ------------------------------------------------------------------------
     //  Notifications on the invokable
     // ------------------------------------------------------------------------
-    private class InnerTimerTask extends TimerTask {
-        private long interval;
+    private class InnerMetricsThread extends TimerTask {
+        ArrayList<Double> thrChangeRecords;
+        ArrayList<Double> rateChangeRecords;
+        double previousThrAverage = 0;
+        double previousRateAverage = 0;
+        int thrCounter = 0;
+        int rateCounter = 0;
+        boolean thrIncreasing = true;
+        boolean rateIncreasing = true;
+        private static final int counterThresholdForSubmission = 3;
+        private static final int recordNum = 4;
+        private static final double incThresholdForCounting = 0.25;
+        private static final double decThresholdForCounting = -0.1;
+        private final long interval;
 
-        public InnerTimerTask(long internal) {
-            this.interval = internal;
+        public InnerMetricsThread(long interval) {
+            this.thrChangeRecords = new ArrayList<>();
+            this.rateChangeRecords = new ArrayList<>();
+            this.interval = interval;
         }
 
         @Override
         public void run() {
-            LOG.info(interval + "ms passed, submit metrics!");
-            TaskIOMetricGroup taskIOMetricGroup =
-                    metrics.getIOMetricGroup(); // include numRecordIn + busy
+            LOG.info(interval + "ms passed, get metrics!");
+            TaskIOMetricGroup taskIOMetricGroup = metrics.getIOMetricGroup();
             Meter numRecordsInRate = taskIOMetricGroup.getNumRecordsInRate();
             double throughput = numRecordsInRate.getRate();
             double busyTimeMsPerSecond = taskIOMetricGroup.getBusyTimePerSecond();
             double idealProcessingRate = throughput * 1000 / busyTimeMsPerSecond;
-            taskManagerActions.submitTaskExecutorRunningStatus(
-                    new TaskManagerRunningState(executionId, throughput, idealProcessingRate));
+            LOG.info(
+                    "Get throughput {}, get ideal processing rate {}",
+                    throughput,
+                    idealProcessingRate);
+
+            // 1. get exponential moving averages
+            double thrAverage = 0.8 * throughput + 0.2 * previousThrAverage;
+            double rateAverage = 0.8 * idealProcessingRate + 0.2 * previousRateAverage;
+
+            // 2. get the percentage of change
+            double thrChangePercentage;
+            double rateChangePercentage;
+            if (previousThrAverage == 0) {
+                thrChangePercentage = 0;
+            } else {
+                thrChangePercentage = (thrAverage - previousThrAverage) / previousThrAverage;
+            }
+            if (previousRateAverage == 0) {
+                rateChangePercentage = 0;
+            } else {
+                rateChangePercentage = (rateAverage - previousRateAverage) / previousRateAverage;
+            }
+            previousThrAverage = thrAverage;
+            previousRateAverage = rateAverage;
+
+            // add to the record array list
+            if (thrChangeRecords.size() == recordNum) {
+                thrChangeRecords.remove(0);
+            }
+            if (rateChangeRecords.size() == recordNum) {
+                rateChangeRecords.remove(0);
+            }
+            thrChangeRecords.add(thrChangePercentage);
+            rateChangeRecords.add(rateChangePercentage);
+
+            // 3. get average of 4 change percentage to check if needed to submit metrics
+            double averageThrChange = getAverage(thrChangeRecords);
+            double averageRateChange = getAverage(rateChangeRecords);
+            if (needSubmitMetrics(averageThrChange, averageRateChange)) {
+                taskManagerActions.submitTaskExecutorRunningStatus(
+                        new TaskManagerRunningState(executionId, throughput, idealProcessingRate));
+            }
         }
-    }
-    /**
-     * Schedule metrics submission to checkpoint adapter in jobmaster
-     *
-     * @param interval Set the interval at which the checkpoint is reported.
-     */
-    public void triggerMetricsSubmission(boolean isCkpAdapterEnable, long interval) {
-        isAdapterEnable = isCkpAdapterEnable;
-        if (interval == -1) {
-            isSubmitAfterCheckpoint = true;
-        } else {
-            isSubmitAfterCheckpoint = false;
-            // set timer
-            TimerTask task = new InnerTimerTask(interval);
-            timer.scheduleAtFixedRate(task, interval, interval);
-            // TODO: cancel timer ?
+
+        private double getAverage(ArrayList<Double> arrayList) {
+            if (arrayList.size() == 0) return 0;
+            double sum = 0;
+            for (double d : arrayList) {
+                sum += d;
+            }
+            return sum / arrayList.size();
+        }
+
+        private boolean needSubmitMetrics(double averageThrChange, double averageRateChange) {
+            boolean modifiedThr = false;
+            boolean modifiedRate = false;
+            if (averageThrChange > incThresholdForCounting) {
+                if (this.thrIncreasing) {
+                    this.thrCounter++;
+                } else {
+                    this.thrIncreasing = true;
+                    this.thrCounter = 1;
+                }
+                modifiedThr = true;
+                if (this.thrCounter >= counterThresholdForSubmission) {
+                    this.thrCounter = 0;
+                    this.rateCounter = 0;
+                    return true;
+                }
+            }
+            if (averageThrChange < decThresholdForCounting) {
+                if (!this.thrIncreasing) {
+                    this.thrCounter++;
+                } else {
+                    this.thrIncreasing = false;
+                    this.thrCounter = 1;
+                }
+                modifiedThr = true;
+                if (this.thrCounter >= counterThresholdForSubmission) {
+                    this.thrCounter = 0;
+                    this.rateCounter = 0;
+                    return true;
+                }
+            }
+            if (averageRateChange > incThresholdForCounting) {
+                if (this.rateIncreasing) {
+                    this.rateCounter++;
+                } else {
+                    this.rateIncreasing = true;
+                    this.rateCounter = 1;
+                }
+                modifiedRate = true;
+                if (this.rateCounter >= counterThresholdForSubmission) {
+                    this.thrCounter = 0;
+                    this.rateCounter = 0;
+                    return true;
+                }
+            }
+            if (averageRateChange < decThresholdForCounting) {
+                if (!this.rateIncreasing) {
+                    this.rateCounter++;
+                } else {
+                    this.rateIncreasing = false;
+                    this.rateCounter = 1;
+                }
+                modifiedRate = true;
+                if (this.rateCounter >= counterThresholdForSubmission) {
+                    this.thrCounter = 0;
+                    this.rateCounter = 0;
+                    return true;
+                }
+            }
+            if (!modifiedThr) {
+                thrCounter = 0;
+            }
+            if (!modifiedRate) {
+                rateCounter = 0;
+            }
+            return false;
         }
     }
 

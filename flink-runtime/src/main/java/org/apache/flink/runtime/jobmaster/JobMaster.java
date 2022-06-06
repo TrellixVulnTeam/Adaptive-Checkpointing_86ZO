@@ -491,13 +491,15 @@ public class JobMaster extends PermanentlyFencedRpcEndpoint<JobMasterId>
     public CompletableFuture<Acknowledge> submitTaskManagerRunningState(
             final TaskManagerRunningState taskManagerRunningState) {
         log.info("jobMaster received data!");
-        if (checkpointAdapter.dealWithMessageFromOneTaskExecutor(taskManagerRunningState)) {
+        if (checkpointAdapter != null
+                && checkpointAdapter.dealWithMessageFromOneTaskExecutor(taskManagerRunningState)) {
             log.info("JobMaster Dealt successfully");
             return CompletableFuture.completedFuture(Acknowledge.get());
         }
         JobMasterException e =
                 new JobMasterException(
-                        "Could not submit the running state of task execution to JobMaster.");
+                        "Could not submit the running state of task execution to JobMaster. CheckpointAdapter may not exist!");
+        handleJobMasterError(e);
         return FutureUtils.completedExceptionally(e);
     }
 

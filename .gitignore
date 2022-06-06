@@ -15,6 +15,7 @@ tmp
 *.swp
 *.jar
 *.log
+*.js
 .DS_Store
 _site
 docs/api
