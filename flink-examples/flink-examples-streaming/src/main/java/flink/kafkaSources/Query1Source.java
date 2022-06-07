@@ -26,7 +26,7 @@ public class Query1Source {
         // Checking input parameters
         //  --kafka-topic <topic>
         //  --broker <broker>
-        //  --ratelist 250_300000_11000_300000
+        //  --broker localhost:9092 --kafka-topic query1  --ratelist 250_300000_11000_300000
         final ParameterTool params = ParameterTool.fromArgs(args);
         final String broker = params.getRequired("broker");
         final String kafkaTopic = params.getRequired("kafka-topic");
@@ -53,7 +53,7 @@ public class Query1Source {
         KafkaSink<Bid> sink =
                 KafkaSink.<Bid>builder()
                         .setBootstrapServers(broker)
-                        .setDeliverGuarantee(DeliveryGuarantee.EXACTLY_ONCE)
+                        .setDeliverGuarantee(DeliveryGuarantee.AT_LEAST_ONCE)
                         .setRecordSerializer(
                                 KafkaRecordSerializationSchema.builder()
                                         .setTopic(kafkaTopic)

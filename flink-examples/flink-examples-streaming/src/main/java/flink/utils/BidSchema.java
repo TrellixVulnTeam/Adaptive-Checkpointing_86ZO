@@ -16,6 +16,7 @@ public class BidSchema implements DeserializationSchema<Bid>, SerializationSchem
         try {
             // according to Bid.toString()
             bid = NexmarkUtils.MAPPER.readValue(message, Bid.class);
+            System.out.println(bid.toString());
         } catch (Exception e) {
             e.printStackTrace();
         }
