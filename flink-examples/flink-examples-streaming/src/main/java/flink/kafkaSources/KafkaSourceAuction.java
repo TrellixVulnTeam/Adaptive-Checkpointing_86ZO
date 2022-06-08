@@ -7,15 +7,15 @@ import org.apache.flink.connector.kafka.sink.KafkaSink;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 
-import flink.sources.BidSourceFunction;
-import flink.utils.BidSchema;
-import org.apache.beam.sdk.nexmark.model.Bid;
+import flink.sources.AuctionSourceFunction;
+import flink.utils.AuctionSchema;
+import org.apache.beam.sdk.nexmark.model.Auction;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-public class Query1Source {
+public class KafkaSourceAuction {
     public static void main(String[] args) throws Exception {
         System.out.println("Options for both the above setups: ");
         System.out.println("\t[--kafka-topic <topic>]");
@@ -26,7 +26,7 @@ public class Query1Source {
         // Checking input parameters
         //  --kafka-topic <topic>
         //  --broker <broker>
-        //  --broker localhost:9092 --kafka-topic query1  --ratelist 250_300000_11000_300000
+        //  --broker localhost:9092 --kafka-topic query3  --ratelist 50000_300000_1000_600000
         final ParameterTool params = ParameterTool.fromArgs(args);
         final String broker = params.getRequired("broker");
         final String kafkaTopic = params.getRequired("kafka-topic");
@@ -35,33 +35,32 @@ public class Query1Source {
         String ratelist = params.getRequired("ratelist");
         int[] numbers = Arrays.stream(ratelist.split("_")).mapToInt(Integer::parseInt).toArray();
         System.out.println(Arrays.toString(numbers));
-        List<List<Integer>> rates = new ArrayList<>();
+        List<List<Integer>> auctionSrcRates = new ArrayList<>();
         for (int i = 0; i < numbers.length - 1; i += 2) {
-            rates.add(Arrays.asList(numbers[i], numbers[i + 1]));
+            auctionSrcRates.add(Arrays.asList(numbers[i], numbers[i + 1]));
         }
 
         // set up streaming execution environment
         StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
 
-        DataStream<Bid> bids =
-                env.addSource(new BidSourceFunction(rates))
-                        .setParallelism(params.getInt("p-source", 1))
-                        .name("Bids Kafka Source")
-                        .uid("Bids-Kafka-Source");
+        DataStream<Auction> auctions =
+                env.addSource(new AuctionSourceFunction(auctionSrcRates))
+                        .name("Custom Source: Auctions")
+                        .setParallelism(params.getInt("p-auction-source", 1));
 
         // write the filtered data to a Kafka sink
-        KafkaSink<Bid> sink =
-                KafkaSink.<Bid>builder()
+        KafkaSink<Auction> sink =
+                KafkaSink.<Auction>builder()
                         .setBootstrapServers(broker)
                         .setDeliverGuarantee(DeliveryGuarantee.AT_LEAST_ONCE)
                         .setRecordSerializer(
                                 KafkaRecordSerializationSchema.builder()
                                         .setTopic(kafkaTopic)
-                                        .setValueSerializationSchema(new BidSchema())
+                                        .setValueSerializationSchema(new AuctionSchema())
                                         .build())
                         .build();
 
-        bids.sinkTo(sink);
+        auctions.sinkTo(sink);
         // run the cleansing pipeline
         env.execute("Bid Events to Kafka");
     }

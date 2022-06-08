@@ -1,10 +1,15 @@
 package flink.queries;
 
+import org.apache.flink.api.common.eventtime.WatermarkStrategy;
 import org.apache.flink.api.common.functions.AggregateFunction;
 import org.apache.flink.api.java.functions.KeySelector;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.api.java.typeutils.GenericTypeInfo;
 import org.apache.flink.api.java.utils.ParameterTool;
+import org.apache.flink.connector.kafka.source.KafkaSource;
+import org.apache.flink.connector.kafka.source.KafkaSourceOptions;
+import org.apache.flink.connector.kafka.source.enumerator.initializer.OffsetsInitializer;
+import org.apache.flink.connector.kafka.source.reader.deserializer.KafkaRecordDeserializationSchema;
 import org.apache.flink.streaming.api.CheckpointingMode;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
@@ -14,64 +19,83 @@ import org.apache.flink.streaming.api.windowing.assigners.SlidingEventTimeWindow
 import org.apache.flink.streaming.api.windowing.time.Time;
 
 import flink.sinks.DummyLatencyCountingSink;
-import flink.sources.BidSourceFunction;
+import flink.utils.BidSchema;
 import org.apache.beam.sdk.nexmark.model.Bid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
 public class Query5 {
 
     private static final Logger logger = LoggerFactory.getLogger(Query5.class);
 
     public static void main(String[] args) throws Exception {
+        System.out.println("Options for both the above setups: ");
+        System.out.println("\t[--kafka-topic <topic>]");
+        System.out.println("\t[--kafka-group <group>]");
+        System.out.println("\t[--broker <broker>]");
+        System.out.println("\t[--exchange-rate <exchange-rate>]");
+        System.out.println("\t[--checkpoint-dir <filepath>]");
+        System.out.println("\t[--incremental-checkpoints <true|false>]");
+        System.out.println();
+
         // Checking input parameters
+        //  --kafka-topic <topic>
+        //  --broker <broker>
+        // --broker localhost:9092 --kafka-topic query1 --kafka-group test1
         final ParameterTool params = ParameterTool.fromArgs(args);
         final float exchangeRate = params.getFloat("exchange-rate", 0.82F);
-        String ratelist = params.getRequired("ratelist");
-
-        //  --ratelist 250_300000_11000_300000
-        int[] numbers = Arrays.stream(ratelist.split("_")).mapToInt(Integer::parseInt).toArray();
-        System.out.println(Arrays.toString(numbers));
-        List<List<Integer>> rates = new ArrayList<>();
-
-        for (int i = 0; i < numbers.length - 1; i += 2) {
-            rates.add(Arrays.asList(numbers[i], numbers[i + 1]));
-        }
+        final String broker = params.getRequired("broker");
+        final String kafkaTopic = params.getRequired("kafka-topic");
+        final String kafkaGroup = params.getRequired("kafka-group");
+        System.out.printf(
+                "Reading from kafka topic %s @ %s group: %s\n", kafkaTopic, broker, kafkaGroup);
+        System.out.println();
+        final String checkpointDir = params.get("checkpoint-dir");
+        boolean incrementalCheckpoints = params.getBoolean("incremental-checkpoints", false);
 
         // set up the execution environment
         final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
 
+        // env.setStateBackend(new EmbeddedRocksDBStateBackend(incrementalCheckpoints));
+        // env.getCheckpointConfig().setCheckpointStorage(checkpointDir);
         env.enableCheckpointing(100000, CheckpointingMode.EXACTLY_ONCE);
-
-        env.getCheckpointConfig().enableUnalignedCheckpoints();
         env.getCheckpointConfig().setCheckpointTimeout(100000);
-
         env.disableOperatorChaining();
-
         env.getConfig().setAutoWatermarkInterval(5000);
 
         // enable latency tracking
         env.getConfig().setLatencyTrackingInterval(100000);
 
-        // final int srcRate = params.getInt("srcRate", 100000);
+        KafkaSource<Bid> source =
+                KafkaSource.<Bid>builder()
+                        .setBootstrapServers(broker)
+                        .setGroupId(kafkaGroup)
+                        .setTopics(kafkaTopic)
+                        .setDeserializer(
+                                KafkaRecordDeserializationSchema.valueOnly(new BidSchema()))
+                        .setProperty(
+                                KafkaSourceOptions.REGISTER_KAFKA_CONSUMER_METRICS.key(), "true")
+                        // If each partition has a committed offset, the offset will be consumed
+                        // from the committed offset.
+                        // Start consuming from scratch when there is no submitted offset
+                        .setStartingOffsets(OffsetsInitializer.earliest())
+                        .build();
 
         DataStream<Bid> bids =
-                env.addSource(new BidSourceFunction(rates))
-                        .setParallelism(params.getInt("p-bid-source", 1))
-                        .assignTimestampsAndWatermarks(
-                                new TimestampAssigner()); // .slotSharingGroup("src");
+                env.fromSource(source, WatermarkStrategy.noWatermarks(), "Kafka source");
+
+        DataStream<Bid> bidsWithWaterMark =
+                bids.assignTimestampsAndWatermarks(
+                        new TimestampAssigner()); // .slotSharingGroup("src");
 
         // SELECT B1.auction, count(*) AS num
         // FROM Bid [RANGE 60 MINUTE SLIDE 1 MINUTE] B1
         // GROUP BY B1.auction
         DataStream<Tuple2<Long, Long>> windowed =
-                bids.keyBy((KeySelector<Bid, Long>) bid -> bid.auction)
+                bidsWithWaterMark
+                        .keyBy((KeySelector<Bid, Long>) bid -> bid.auction)
                         .window(SlidingEventTimeWindows.of(Time.seconds(5), Time.seconds(1)))
                         .aggregate(new CountBids())
                         .name("Sliding Window");
