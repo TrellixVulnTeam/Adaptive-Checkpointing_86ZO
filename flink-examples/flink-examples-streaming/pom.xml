@@ -98,7 +98,7 @@
                 <configuration>
                     <archive>
                         <manifest>
-                            <mainClass>flink.queries.Query1</mainClass>
+                            <mainClass>flink.queries.Query5</mainClass>
                         </manifest>
                     </archive>
                 </configuration>
