@@ -7,4 +7,4 @@ cd $FLINKROOT/flink-dist/target/flink-1.14.0-bin/flink-1.14.0/bin
 
 rm "$FLINKROOT"/build-target/log/*
 
-cd $FLINKROOT/scripts/
+cd $FLINKROOT/deploy-scripts/
