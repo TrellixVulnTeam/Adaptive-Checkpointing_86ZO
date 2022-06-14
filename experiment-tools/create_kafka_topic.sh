@@ -1,7 +1,11 @@
+#!/bin/bash
+
+USAGE="Usage: create_kafka_topic.sh (kafka_ip) (topic_name)"
+
 # create a random topic
+KAFKAIP=$1
+TOPICNAME=$2
+printf 'kafkaip: %s topic_name: %s\n' "$KAFKAIP" "$TOPICNAME"
 
-# keep topic in a file
-
-# scp file back to node-1
-
-# submit jobs with topic name
+# create topic in kafka
+ssh "ubuntu@$KAFKAIP" "cd kafka/ && bin/kafka-topics.sh --create --topic "$TOPICNAME" --bootstrap-server "$KAFKAIP":9092"

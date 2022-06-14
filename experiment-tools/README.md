@@ -1,3 +1,6 @@
+require > Python 3.5
+pip install requests
+
 # Query1 Query5
 ```shell
 python3 ./build.py s b

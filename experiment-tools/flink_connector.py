@@ -196,7 +196,7 @@ class Flink:
 
 def _test():
     from pprint import pprint
-    flink = Flink(endpoint="http://128.31.24.216:8081/")
+    flink = Flink(endpoint="http://128.31.26.144:8081/")
     print("Endpoint is:", flink.get_endpoint())
     jobs = flink.list_jobs()
     print("Jobs:", jobs)
