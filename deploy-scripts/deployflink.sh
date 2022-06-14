@@ -16,6 +16,8 @@ cd "$FLINKROOT"/flink-dist/target/flink-1.14.0-bin/flink-1.14.0/bin
 
 # clean previous log files
 rm "$FLINKROOT"/build-target/log/*
+
+# deploy workers
 cd "$FLINKROOT"/deploy-scripts/
 while IFS= read -r line; do
   ip="$line"
@@ -37,6 +39,7 @@ do
   fi
 done
 
+# start cluster
 cd "$FLINKROOT"/flink-dist/target/flink-1.14.0-bin/flink-1.14.0/bin
 ./start-cluster.sh
 
