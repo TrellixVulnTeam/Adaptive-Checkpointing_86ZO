@@ -37,6 +37,6 @@ async def submit_kafkasource_job(name):
 
 # if __name__ == "__main__":
 #    await submit_query_job()
-#    await aubmit_kafkasource_job()
+#    await submit_kafkasource_job()
 
 
