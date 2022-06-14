@@ -127,6 +127,7 @@ public class BidSourceFunction extends RichParallelSourceFunction<Bid>
                                             config.nextEventNumber(eventsCountSoFar))
                                     .getKey();
 
+                    LOG.info(String.valueOf(nextId));
                     ctx.collect(BidGenerator.nextBid(nextId, rnd, eventTimestamp, config));
                     eventsCountSoFar++;
                 }

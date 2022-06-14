@@ -18,6 +18,7 @@
 
 package flink.queries;
 
+import org.apache.flink.api.common.eventtime.WatermarkStrategy;
 import org.apache.flink.api.common.functions.FilterFunction;
 import org.apache.flink.api.common.state.MapState;
 import org.apache.flink.api.common.state.MapStateDescriptor;
@@ -29,6 +30,10 @@ import org.apache.flink.api.java.typeutils.GenericTypeInfo;
 import org.apache.flink.api.java.typeutils.TupleTypeInfo;
 import org.apache.flink.api.java.utils.ParameterTool;
 import org.apache.flink.configuration.Configuration;
+import org.apache.flink.connector.kafka.source.KafkaSource;
+import org.apache.flink.connector.kafka.source.KafkaSourceOptions;
+import org.apache.flink.connector.kafka.source.enumerator.initializer.OffsetsInitializer;
+import org.apache.flink.connector.kafka.source.reader.deserializer.KafkaRecordDeserializationSchema;
 import org.apache.flink.streaming.api.CheckpointingMode;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.KeyedStream;
@@ -37,8 +42,8 @@ import org.apache.flink.streaming.api.functions.co.RichCoFlatMapFunction;
 import org.apache.flink.util.Collector;
 
 import flink.sinks.DummyLatencyCountingSink;
-import flink.sources.AuctionSourceFunction;
-import flink.sources.PersonSourceFunction;
+import flink.utils.AuctionSchema;
+import flink.utils.PersonSchema;
 import org.apache.beam.sdk.nexmark.model.Auction;
 import org.apache.beam.sdk.nexmark.model.Person;
 import org.slf4j.Logger;
@@ -51,55 +56,101 @@ public class Query3Stateful {
     private static final Logger logger = LoggerFactory.getLogger(Query3Stateful.class);
 
     public static void main(String[] args) throws Exception {
-        // Checking input parameters
-        final ParameterTool params = ParameterTool.fromArgs(args);
-        String ratelist = params.getRequired("ratelist");
-
-        //  --ratelist 50000_300000_10000_300000_1000_600000_200_600000
-        int[] numbers = Arrays.stream(ratelist.split("_")).mapToInt(Integer::parseInt).toArray();
-        System.out.println(Arrays.toString(numbers));
-
-        List<List<Integer>> auctionSrcRates = new ArrayList<>();
-        List<List<Integer>> personSrcRates = new ArrayList<>();
-
-        for (int i = 0; i < numbers.length - 3; i += 4) {
-            auctionSrcRates.add(Arrays.asList(numbers[i], numbers[i + 1]));
-            personSrcRates.add(Arrays.asList(numbers[i + 2], numbers[i + 3]));
-        }
-
         // set up the execution environment
-        final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
+        System.out.println("Options for both the above setups: ");
+        System.out.println("\t[--auction-kafka-topic <topic>]");
+        System.out.println("\t[--auction-kafka-group <group>]");
+        System.out.println("\t[--auction-broker <broker>]");
+        System.out.println("\t[--person-kafka-topic <topic>]");
+        System.out.println("\t[--person-kafka-group <group>]");
+        System.out.println("\t[--person-broker <broker>]");
+        System.out.println("\t[--exchange-rate <exchange-rate>]");
+        System.out.println("\t[--checkpoint-dir <filepath>]");
+        System.out.println("\t[--incremental-checkpoints <true|false>]");
+        System.out.println();
 
-        env.enableCheckpointing(5000, CheckpointingMode.AT_LEAST_ONCE);
+        // Checking input parameters
+        // --auction-broker <broker> --auction-kafka-topic <topic> --auction-kafka-group <group>
+        // --auction-broker localhost:9092 --auction-kafka-topic query3 --auction-kafka-group test1
+        // --person-broker <broker> --person-kafka-topic <topic> --person-kafka-group <group>
+        // --person-broker localhost:9092 --person-kafka-topic query3 --person-kafka-group test1
+        final ParameterTool params = ParameterTool.fromArgs(args);
+        final float exchangeRate = params.getFloat("exchange-rate", 0.82F);
+        final String auctionBroker = params.getRequired("auction-broker");
+        final String auctionKafkaTopic = params.getRequired("auction-kafka-topic");
+        final String auctionKafkaGroup = params.getRequired("auction-kafka-group");
+        final String personBroker = params.getRequired("person-broker");
+        final String personKafkaTopic = params.getRequired("person-kafka-topic");
+        final String personKafkaGroup = params.getRequired("person-kafka-group");
+        System.out.printf(
+                "Reading Auction data from kafka topic %s @ %s group: %s\n",
+                auctionKafkaTopic, auctionBroker, auctionKafkaGroup);
+        System.out.printf(
+                "Reading Person data from kafka topic %s @ %s group: %s\n",
+                personKafkaTopic, personBroker, personKafkaGroup);
+        System.out.println();
+        final String checkpointDir = params.get("checkpoint-dir");
+        boolean incrementalCheckpoints = params.getBoolean("incremental-checkpoints", false);
+
+        final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
+        // env.setStateBackend(new EmbeddedRocksDBStateBackend(incrementalCheckpoints));
+        // env.getCheckpointConfig().setCheckpointStorage(checkpointDir);
+        env.enableCheckpointing(5000, CheckpointingMode.EXACTLY_ONCE);
         env.enableCheckpointAdapter(100000);
+        env.disableOperatorChaining();
         // enable latency tracking
         env.getConfig().setLatencyTrackingInterval(60000);
 
-        env.disableOperatorChaining();
-
-        //        final int auctionSrcRate = params.getInt("auction-srcRate", 20000);
-        //        final int personSrcRate = params.getInt("person-srcRate", 10000);
+        KafkaSource<Auction> auctionKafkaSource =
+                KafkaSource.<Auction>builder()
+                        .setBootstrapServers(auctionBroker)
+                        .setGroupId(auctionKafkaGroup)
+                        .setTopics(auctionKafkaTopic)
+                        .setDeserializer(
+                                KafkaRecordDeserializationSchema.valueOnly(new AuctionSchema()))
+                        .setProperty(
+                                KafkaSourceOptions.REGISTER_KAFKA_CONSUMER_METRICS.key(), "true")
+                        // If each partition has a committed offset, the offset will be consumed
+                        // from the committed offset.
+                        // Start consuming from scratch when there is no submitted offset
+                        .setStartingOffsets(OffsetsInitializer.earliest())
+                        .build();
 
         DataStream<Auction> auctions =
-                env.addSource(new AuctionSourceFunction(auctionSrcRates))
-                        .name("Custom Source: Auctions")
-                        .setParallelism(params.getInt("p-auction-source", 1));
-        // .slotSharingGroup("srca");
+                env.fromSource(
+                        auctionKafkaSource,
+                        WatermarkStrategy.noWatermarks(),
+                        "Auction Kafka source");
+
+        KafkaSource<Person> personKafkaSource =
+                KafkaSource.<Person>builder()
+                        .setBootstrapServers(personBroker)
+                        .setGroupId(personKafkaGroup)
+                        .setTopics(personKafkaTopic)
+                        .setDeserializer(
+                                KafkaRecordDeserializationSchema.valueOnly(new PersonSchema()))
+                        .setProperty(
+                                KafkaSourceOptions.REGISTER_KAFKA_CONSUMER_METRICS.key(), "true")
+                        // If each partition has a committed offset, the offset will be consumed
+                        // from the committed offset.
+                        // Start consuming from scratch when there is no submitted offset
+                        .setStartingOffsets(OffsetsInitializer.earliest())
+                        .build();
 
         DataStream<Person> persons =
-                env.addSource(new PersonSourceFunction(personSrcRates))
-                        .name("Custom Source: Persons")
-                        .setParallelism(params.getInt("p-person-source", 1))
-                        // .slotSharingGroup("srcp")
-                        .filter(
-                                new FilterFunction<Person>() {
-                                    @Override
-                                    public boolean filter(Person person) throws Exception {
-                                        return (person.state.equals("OR")
-                                                || person.state.equals("ID")
-                                                || person.state.equals("CA"));
-                                    }
-                                });
+                env.fromSource(
+                        personKafkaSource, WatermarkStrategy.noWatermarks(), "Person Kafka source");
+
+        DataStream<Person> filteredPersons =
+                persons.filter(
+                        new FilterFunction<Person>() {
+                            @Override
+                            public boolean filter(Person person) throws Exception {
+                                return (person.state.equals("OR")
+                                        || person.state.equals("ID")
+                                        || person.state.equals("CA"));
+                            }
+                        });
         // .setParallelism(params.getInt("p-person-source", 1))
         // .slotSharingGroup("filt");
 
@@ -117,7 +168,7 @@ public class Query3Stateful {
                         });
 
         KeyedStream<Person, Long> keyedPersons =
-                persons.keyBy(
+                filteredPersons.keyBy(
                         new KeySelector<Person, Long>() {
                             @Override
                             public Long getKey(Person person) throws Exception {
