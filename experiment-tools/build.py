@@ -1,6 +1,20 @@
 import os
 import sys
-from nameconfig import query_name, folder_name
+
+query_name={
+    '1':'Query1',
+    '3':'Query3Stateful',
+    '5':'Query5',
+    '8':'Query8',
+    'a':'KafkaSourceAuction',
+    'b':'KafkaSourceBid',
+    'p':'KafkaSourcePerson'
+}
+
+folder_name={
+    'q':'queries',
+    's':'kafkaSource'
+}
 
 #specify which query to run
 kwd=sys.argv[2]
