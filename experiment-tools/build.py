@@ -1,24 +1,15 @@
 import os
 import sys
-
-query_name={
-    '1':'Query1',
-    '3':'Query3Stateful',
-    '5':'Query5',
-    '8':'Query8',
-    'a':'KafkaSourceAuction',
-    'b':'KafkaSourceBid',
-    'p':'KafkaSourcePerson'
-}
-
-folder_name={
-    'q':'queries',
-    's':'kafkaSource'
-}
+from nameconfig import query_name, folder_name
 
 #specify which query to run
 kwd=sys.argv[2]
 folder=sys.argv[1]
+
+# todo: update error catch
+if (kwd not in query_name) or (folder not in folder): 
+    print("invalid query name!")
+    exit()
 
 print('Compiling '+folder_name[folder]+ ' '+query_name[kwd])
 
