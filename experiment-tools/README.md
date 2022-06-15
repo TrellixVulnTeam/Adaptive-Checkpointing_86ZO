@@ -1,6 +1,3 @@
-require > Python 3.5
-pip install requests
-
 # Build Job
 ```shell
 cd expeirment-tools/
@@ -15,16 +12,16 @@ cd expeirment-tools/
 
 ## Build KafkaSourceJob
 ```shell
-python3 ./build.py s b # build BidSource
-python3 ./build.py s a # build AuctionSource
-python3 ./build.py s p # build PersonSource
+build.sh b # build BidSource
+build.sh a # build AuctionSource
+build.sh p # build PersonSource
 ```
 ## Build Query
 ```shell
-python3 ./build.py q 1 # Build Query1
-python3 ./build.py q 3 # Build Query3
-python3 ./build.py q 5 # Build Query5
-python3 ./build.py q 8 # Build Query8
+build.sh 1 # Build Query1
+build.sh 3 # Build Query3
+build.sh 5 # Build Query5
+build.sh 8 # Build Query8
 ```
 # Start Experiment
 The script will automatically submit the jars of Query and its Source, just specify the Query to run.
