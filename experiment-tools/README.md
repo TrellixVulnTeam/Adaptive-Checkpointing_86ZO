@@ -12,16 +12,16 @@ cd expeirment-tools/
 
 ## Build KafkaSourceJob
 ```shell
-build.sh b # build BidSource
-build.sh a # build AuctionSource
-build.sh p # build PersonSource
+sh build.sh b # build BidSource
+sh build.sh a # build AuctionSource
+sh build.sh p # build PersonSource
 ```
 ## Build Query
 ```shell
-build.sh 1 # Build Query1
-build.sh 3 # Build Query3
-build.sh 5 # Build Query5
-build.sh 8 # Build Query8
+sh build.sh 1 # Build Query1
+sh build.sh 3 # Build Query3
+sh build.sh 5 # Build Query5
+sh build.sh 8 # Build Query8
 ```
 # Start Experiment
 ```shell
@@ -29,16 +29,9 @@ vim argsconfig.sh # change configs such as ratelist in this file
 ```
 The script will automatically submit the jars of Query and its Source, just specify the Query to run.
 ```shell
-start-exp.sh 1 # start Query1
-start-exp.sh 3 # start Query3
-start-exp.sh 5 # start Query5
-start-exp.sh 8 # start Query8
+sh start-exp.sh 1 # start Query1
+sh start-exp.sh 3 # start Query3
+sh start-exp.sh 5 # start Query5
+sh start-exp.sh 8 # start Query8
 ```
 # stop Experiment
-Stop the experiment with a script, rather than manually
-```shell
-stop-exp.sh 1 # start Query1
-stop-exp.sh 3 # start Query3
-stop-exp.sh 5 # start Query5
-stop-exp.sh 8 # start Query8
-```

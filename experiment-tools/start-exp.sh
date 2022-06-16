@@ -63,13 +63,16 @@ if [ $withTwoSource = true ]; then
     ssh "ubuntu@$KAFKAIP" "cd kafka/ && bin/kafka-topics.sh --create --topic "$PERSON_TOPIC" --bootstrap-server "$KAFKA""
 
     # run query
-    ./bin/flink run $Queryjar --auction-kafka-topic "$AUCTION_TOPIC" --auction-kafka-group "$GROUP" --auction-broker "$KAFKA" --person-kafka-topic "$PERSON_TOPIC" --person-kafka-group "$GROUP" --person-broker "$KAFKA"
+    ./bin/flink run $Queryjar --auction-kafka-topic "$AUCTION_TOPIC" --auction-kafka-group "$GROUP" --auction-broker "$KAFKA" --person-kafka-topic "$PERSON_TOPIC" --person-kafka-group "$GROUP" --person-broker "$KAFKA"  & \
+
+    # ensure query is setup before kafkasource
+    sleep 5
 
     # run auction source
-    ./bin/flink run $auctionSjar --kafka-topic "$AUCTION_TOPIC" --broker "$KAFKA" --ratelist "$RATELIST"
+    ./bin/flink run $auctionSjar --kafka-topic "$AUCTION_TOPIC" --broker "$KAFKA" --ratelist "$RATELIST"  & \
 
     # run person source
-    ./bin/flink run $personSjar --kafka-topic "$PERSON_TOPIC" --broker "$KAFKA" --ratelist "$RATELIST"
+    ./bin/flink run $personSjar --kafka-topic "$PERSON_TOPIC" --broker "$KAFKA" --ratelist "$RATELIST"  & \
 
 else
     Queryjar="$bin"/"$TARGET_DIR"/"$QUERY_TO_RUN.jar"
@@ -85,11 +88,14 @@ else
     printf 'kafkaip: bid topic_name: %s\n' "$TOPICNAME"
     ssh "ubuntu@$KAFKAIP" "cd kafka/ && bin/kafka-topics.sh --create --topic "$TOPICNAME" --bootstrap-server "$KAFKA""
 
-    # run query
-    ./bin/flink run $Queryjar --kafka-topic "$TOPICNAME" --kafka-group "$GROUP" --broker "$KAFKA"
+    # run query, & guaqi, \ huanhang, pid kill, chmod +x file
+    ./bin/flink run $Queryjar --kafka-topic "$TOPICNAME" --kafka-group "$GROUP" --broker "$KAFKA" & \
+
+    # ensure query is setup before kafkasource
+    sleep 5
 
     # run auction source
-    ./bin/flink run $bidSjar --kafka-topic "$TOPICNAME" --broker "$KAFKA" --ratelist "$RATELIST"
+    ./bin/flink run $bidSjar --kafka-topic "$TOPICNAME" --broker "$KAFKA" --ratelist "$RATELIST" & \
 fi
 
 
