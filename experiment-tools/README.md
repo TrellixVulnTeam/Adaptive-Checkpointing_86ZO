@@ -24,6 +24,9 @@ build.sh 5 # Build Query5
 build.sh 8 # Build Query8
 ```
 # Start Experiment
+```shell
+vim argsconfig.sh # change configs such as ratelist in this file
+```
 The script will automatically submit the jars of Query and its Source, just specify the Query to run.
 ```shell
 start-exp.sh 1 # start Query1
