@@ -78,7 +78,7 @@
 					</descriptorRefs>
 					<archive>
 						<manifestEntries>
-							<program-class>flink.kafkaSources.KafkaSourceBid</program-class>
+							<program-class>flink.queries.Query3Stateful</program-class>
 						</manifestEntries>
 					</archive>
 				</configuration>
@@ -98,7 +98,7 @@
 				<configuration>
 					<archive>
 						<manifest>
-							<mainClass>flink.kafkaSources.KafkaSourceBid</mainClass>
+							<mainClass>flink.queries.Query3Stateful</mainClass>
 						</manifest>
 					</archive>
 				</configuration>
