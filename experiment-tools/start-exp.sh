@@ -3,12 +3,13 @@ export FLINKROOT=$(builtin cd ..; pwd)
 echo $FLINKROOT
 USAGE="Usage: start-exp.sh (1/3/5/8)"
 KAFKAIP="128.31.25.127"
-KAFAK="128.31.25.127:9092"
+KAFKA="128.31.25.127:9092"
 
 bin=`dirname "$0"`
 bin=`cd "$bin"; pwd`
 . "$bin"/config.sh
 . "$bin"/argsconfig.sh
+echo $bin
 
 QUERY=$1
 QUERY_TO_RUN=""
@@ -33,9 +34,11 @@ case $QUERY in
          exit 1
      ;;
 esac
+echo  $QUERY_TO_RUN
 
 # submit Query JOB
-cd "$FLINKROOT"/flink-dist/target/flink-1.14.0-bin/flink-1.14.0/ || echo cd fails && exit 1
+cd "$FLINKROOT"/flink-dist/target/flink-1.14.0-bin/flink-1.14.0/ || (echo cd fails && exit 1)
+pwd
 if [ $withTwoSource = true ]; then
     echo 2 Source
 
@@ -60,13 +63,13 @@ if [ $withTwoSource = true ]; then
     ssh "ubuntu@$KAFKAIP" "cd kafka/ && bin/kafka-topics.sh --create --topic "$PERSON_TOPIC" --bootstrap-server "$KAFKA""
 
     # run query
-    fork ./bin/flink run $Queryjar --auction-kafka-topic "$AUCTION_TOPIC" --auction-kafka-group "$GROUP" --auction-broker "$KAFKA" --person-kafka-topic "$PERSON_TOPIC" --person-kafka-group "$GROUP" --person-broker "$KAFKA"
+    ./bin/flink run $Queryjar --auction-kafka-topic "$AUCTION_TOPIC" --auction-kafka-group "$GROUP" --auction-broker "$KAFKA" --person-kafka-topic "$PERSON_TOPIC" --person-kafka-group "$GROUP" --person-broker "$KAFKA"
 
     # run auction source
-    fork ./bin/flink run $auctionSjar --kafka-topic "$TOPICNAME" --kafka-group "$GROUP" --broker "$KAFKA"
+    ./bin/flink run $auctionSjar --kafka-topic "$AUCTION_TOPIC" --broker "$KAFKA" --ratelist "$RATELIST"
 
     # run person source
-    fork ./bin/flink run $personSjar --kafka-topic "$TOPICNAME" --kafka-group "$GROUP" --broker "$KAFKA"
+    ./bin/flink run $personSjar --kafka-topic "$PERSON_TOPIC" --broker "$KAFKA" --ratelist "$RATELIST"
 
 else
     Queryjar="$bin"/"$TARGET_DIR"/"$QUERY_TO_RUN.jar"
@@ -83,10 +86,10 @@ else
     ssh "ubuntu@$KAFKAIP" "cd kafka/ && bin/kafka-topics.sh --create --topic "$TOPICNAME" --bootstrap-server "$KAFKA""
 
     # run query
-    fork ./bin/flink run $Queryjar --kafka-topic "$TOPICNAME" --kafka-group "$GROUP" --broker "$KAFKA"
+    ./bin/flink run $Queryjar --kafka-topic "$TOPICNAME" --kafka-group "$GROUP" --broker "$KAFKA"
 
     # run auction source
-    fork ./bin/flink run $bidSjar --kafka-topic "$TOPICNAME" --kafka-group "$GROUP" --broker "$KAFKA"
+    ./bin/flink run $bidSjar --kafka-topic "$TOPICNAME" --broker "$KAFKA" --ratelist "$RATELIST"
 fi
 
 
