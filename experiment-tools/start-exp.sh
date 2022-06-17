@@ -1,5 +1,5 @@
 #!/bin/bash
-export FLINKROOT=$(builtin cd ..; pwd)
+export FLINKROOT=$(cd ..; pwd)
 echo $FLINKROOT
 USAGE="Usage: start-exp.sh (1/3/5/8)"
 KAFKAIP="128.31.25.127"

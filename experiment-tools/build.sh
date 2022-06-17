@@ -1,5 +1,5 @@
 #!/bin/bash
-export FLINKROOT=$(builtin cd ..; pwd)
+export FLINKROOT=$(cd ..; pwd)
 echo $FLINKROOT
 
 bin=`dirname "$0"`
@@ -50,7 +50,10 @@ esac
 
 printf '%s %s\n' $CURR_FOLDER $CURR_JOB
 sed 's/FOLDER/'"$CURR_FOLDER"'/g' ./pom_template.xml > ./pom.xml
-sed -i "" 's/QUERYNO/'"$CURR_JOB"'/g' ./pom.xml
+# run on mac
+#sed -i "" 's/QUERYNO/'"$CURR_JOB"'/g' ./pom.xml
+# run on linux
+sed -i 's/QUERYNO/'"$CURR_JOB"'/g' ./pom.xml
 
 
 # build jar
