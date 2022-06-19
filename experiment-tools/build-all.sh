@@ -9,7 +9,7 @@ echo $bin
 
 # build jar
 cp all_pom_template.xml ../flink-examples/flink-examples-streaming/pom.xml
-#cd .. && mvn spotless:apply && mvn clean package -DskipTests
+cd .. && mvn spotless:apply && mvn clean package -DskipTests
 
 # move and rename to current folder
 if [ ! -d  $TARGET_DIR ]; then

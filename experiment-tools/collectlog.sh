@@ -1,5 +1,5 @@
 #!/bin/bash
-export FLINKROOT=$(builtin cd ..; pwd)
+export FLINKROOT=$(cd ..; pwd)
 echo $FLINKROOT
 iplist=()
 

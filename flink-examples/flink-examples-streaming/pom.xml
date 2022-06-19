@@ -76,32 +76,39 @@
 					<descriptorRefs>
 						<descriptorRef>jar-with-dependencies</descriptorRef>
 					</descriptorRefs>
-					<archive>
-						<manifestEntries>
-							<program-class>flink.queries.Query3Stateful</program-class>
-						</manifestEntries>
-					</archive>
 				</configuration>
 				<executions>
 					<execution>
+						<id>Query1</id>
 						<phase>package</phase>
 						<goals>
 							<goal>single</goal>
 						</goals>
+						<configuration>
+							<finalName>Query1</finalName>
+							<archive>
+								<manifestEntries>
+									<mainClass>flink.queries.Query1</mainClass>
+								</manifestEntries>
+							</archive>
+						</configuration>
+					</execution>
+					<execution>
+						<id>KafkaSourceBid</id>
+						<phase>package</phase>
+						<goals>
+							<goal>single</goal>
+						</goals>
+						<configuration>
+							<finalName>KafkaSourceBid</finalName>
+							<archive>
+								<manifestEntries>
+									<mainClass>flink.kafkaSources.KafkaSourceBid</mainClass>
+								</manifestEntries>
+							</archive>
+						</configuration>
 					</execution>
 				</executions>
-			</plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-jar-plugin</artifactId>
-				<version>3.2.0</version>
-				<configuration>
-					<archive>
-						<manifest>
-							<mainClass>flink.queries.Query3Stateful</mainClass>
-						</manifest>
-					</archive>
-				</configuration>
 			</plugin>
 		</plugins>
 	</build>
