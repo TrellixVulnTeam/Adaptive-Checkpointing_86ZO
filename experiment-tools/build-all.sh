@@ -20,4 +20,9 @@ fi
 # a problem to resolve ?
 sleep 5
 cp "$FLINKROOT"/flink-examples/flink-examples-streaming/target/Query1-jar-with-dependencies.jar "$TARGET_DIR"/"$QUERY1".jar
+cp "$FLINKROOT"/flink-examples/flink-examples-streaming/target/Query1-jar-with-dependencies.jar "$TARGET_DIR"/"$QUERY3".jar
+cp "$FLINKROOT"/flink-examples/flink-examples-streaming/target/Query1-jar-with-dependencies.jar "$TARGET_DIR"/"$QUERY5".jar
+cp "$FLINKROOT"/flink-examples/flink-examples-streaming/target/Query1-jar-with-dependencies.jar "$TARGET_DIR"/"$QUERY8".jar
 cp "$FLINKROOT"/flink-examples/flink-examples-streaming/target/KafkaSourceBid-jar-with-dependencies.jar "$TARGET_DIR"/"$BID_SOURCE".jar
+cp "$FLINKROOT"/flink-examples/flink-examples-streaming/target/KafkaSourceAuction-jar-with-dependencies.jar "$TARGET_DIR"/"$AUCTION_SOURCE".jar
+cp "$FLINKROOT"/flink-examples/flink-examples-streaming/target/KafkaSourceBid-jar-with-dependencies.jar "$TARGET_DIR"/"$PERSON_SOURCE".jar

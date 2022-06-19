@@ -12,7 +12,7 @@ cd expeirment-tools/
 
 ## Build KafkaSourceJob
 ```shell
-sh build-all.sh # build all source and query jobs 
+sh build-all.sh # build all source and query jobs at oncw
 ```
 ```shell
 sh build.sh b # build BidSource

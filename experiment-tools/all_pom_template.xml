@@ -94,6 +94,51 @@
 						</configuration>
 					</execution>
 					<execution>
+						<id>Query3</id>
+						<phase>package</phase>
+						<goals>
+							<goal>single</goal>
+						</goals>
+						<configuration>
+							<finalName>Query3</finalName>
+							<archive>
+								<manifestEntries>
+									<mainClass>flink.queries.Query3Stateful</mainClass>
+								</manifestEntries>
+							</archive>
+						</configuration>
+					</execution>
+					<execution>
+						<id>Query5</id>
+						<phase>package</phase>
+						<goals>
+							<goal>single</goal>
+						</goals>
+						<configuration>
+							<finalName>Query5</finalName>
+							<archive>
+								<manifestEntries>
+									<mainClass>flink.queries.Query5</mainClass>
+								</manifestEntries>
+							</archive>
+						</configuration>
+					</execution>
+					<execution>
+						<id>Query8</id>
+						<phase>package</phase>
+						<goals>
+							<goal>single</goal>
+						</goals>
+						<configuration>
+							<finalName>Query8</finalName>
+							<archive>
+								<manifestEntries>
+									<mainClass>flink.queries.Query8</mainClass>
+								</manifestEntries>
+							</archive>
+						</configuration>
+					</execution>
+					<execution>
 						<id>KafkaSourceBid</id>
 						<phase>package</phase>
 						<goals>
@@ -104,6 +149,36 @@
 							<archive>
 								<manifestEntries>
 									<mainClass>flink.kafkaSources.KafkaSourceBid</mainClass>
+								</manifestEntries>
+							</archive>
+						</configuration>
+					</execution>
+					<execution>
+						<id>KafkaSourceAuction</id>
+						<phase>package</phase>
+						<goals>
+							<goal>single</goal>
+						</goals>
+						<configuration>
+							<finalName>KafkaSourceAuction</finalName>
+							<archive>
+								<manifestEntries>
+									<mainClass>flink.kafkaSources.KafkaSourceAuction</mainClass>
+								</manifestEntries>
+							</archive>
+						</configuration>
+					</execution>
+					<execution>
+						<id>KafkaSourcePerson</id>
+						<phase>package</phase>
+						<goals>
+							<goal>single</goal>
+						</goals>
+						<configuration>
+							<finalName>KafkaSourcePerson</finalName>
+							<archive>
+								<manifestEntries>
+									<mainClass>flink.kafkaSources.KafkaSourcePerson</mainClass>
 								</manifestEntries>
 							</archive>
 						</configuration>
