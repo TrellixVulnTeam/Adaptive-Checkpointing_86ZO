@@ -62,6 +62,7 @@ if [ $withTwoSource = true ]; then
     printf 'kafkaip: person topic_name: %s\n' "$PERSON_TOPIC"
     ssh "ubuntu@$KAFKAIP" "cd kafka/ && bin/kafka-topics.sh --create --topic "$PERSON_TOPIC" --bootstrap-server "$KAFKA""
 
+    sleep 5
     # run query
     ./bin/flink run $Queryjar --auction-kafka-topic "$AUCTION_TOPIC" --auction-kafka-group "$GROUP" --auction-broker "$KAFKA" --person-kafka-topic "$PERSON_TOPIC" --person-kafka-group "$GROUP" --person-broker "$KAFKA"  & \
 
@@ -88,6 +89,7 @@ else
     printf 'kafkaip: bid topic_name: %s\n' "$TOPICNAME"
     ssh "ubuntu@$KAFKAIP" "cd kafka/ && bin/kafka-topics.sh --create --topic "$TOPICNAME" --bootstrap-server "$KAFKA""
 
+    sleep 5
     # run query, & guaqi, \ huanhang, pid kill, chmod +x file
     ./bin/flink run $Queryjar --kafka-topic "$TOPICNAME" --kafka-group "$GROUP" --broker "$KAFKA" & \
 
