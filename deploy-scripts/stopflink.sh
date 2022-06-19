@@ -1,5 +1,5 @@
 #!/bin/bash
-export FLINKROOT=$(builtin cd ..; pwd)
+export FLINKROOT=$(cd ..; pwd)
 echo $FLINKROOT
 
 cd $FLINKROOT/flink-dist/target/flink-1.14.0-bin/flink-1.14.0/bin

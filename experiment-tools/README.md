@@ -12,6 +12,9 @@ cd expeirment-tools/
 
 ## Build KafkaSourceJob
 ```shell
+sh build-all.sh # build all source and query jobs 
+```
+```shell
 sh build.sh b # build BidSource
 sh build.sh a # build AuctionSource
 sh build.sh p # build PersonSource

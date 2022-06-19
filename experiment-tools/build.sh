@@ -68,4 +68,5 @@ else
   echo dir exist
 fi
 # a problem to resolve ?
+sleep 5
 cp "$FLINKROOT"/flink-examples/flink-examples-streaming/target/flink-examples-streaming_2.11-1.14.0-jar-with-dependencies.jar "$TARGET_DIR"/"$CURR_JOB".jar
