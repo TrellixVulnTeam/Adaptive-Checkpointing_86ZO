@@ -2,8 +2,8 @@
 export FLINKROOT=$(cd ..; pwd)
 echo $FLINKROOT
 USAGE="Usage: start-exp.sh (1/3/5/8)"
-KAFKAIP="128.31.25.127"
-KAFKA="128.31.25.127:9092"
+KAFKAIP="localhost"
+KAFKA="$KAFKAIP:9092"
 
 bin=`dirname "$0"`
 bin=`cd "$bin"; pwd`
