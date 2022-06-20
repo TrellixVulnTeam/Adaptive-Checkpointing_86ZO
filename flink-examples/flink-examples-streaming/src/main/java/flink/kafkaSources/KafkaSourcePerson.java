@@ -62,6 +62,6 @@ public class KafkaSourcePerson {
 
         persons.sinkTo(sink);
         // run the cleansing pipeline
-        env.execute("Bid Events to Kafka");
+        env.execute("Person Events to Kafka");
     }
 }

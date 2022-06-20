@@ -62,8 +62,8 @@ rm ./pom.xml
 cd .. && mvn spotless:apply && mvn clean package -DskipTests
 
 # move and rename to current folder
-if [ ! -d  $TARGET_DIR ]; then
-  mkdir "$TARGET_DIR"
+if [ ! -d "$bin"/"$TARGET_DIR" ]; then
+  mkdir "$bin"/"$TARGET_DIR"
 else
   echo dir exist
 fi

@@ -62,6 +62,6 @@ public class KafkaSourceAuction {
 
         auctions.sinkTo(sink);
         // run the cleansing pipeline
-        env.execute("Bid Events to Kafka");
+        env.execute("Auction Events to Kafka");
     }
 }
