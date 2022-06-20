@@ -64,7 +64,16 @@ if [ $withTwoSource = true ]; then
 
     sleep 5
     # run query
-    ./bin/flink run $Queryjar --auction-kafka-topic "$AUCTION_TOPIC" --auction-kafka-group "$GROUP" --auction-broker "$KAFKA" --person-kafka-topic "$PERSON_TOPIC" --person-kafka-group "$GROUP" --person-broker "$KAFKA"  & \
+    ./bin/flink run $Queryjar \
+     --exchange-rate "$EXCHANGE_RAGE" \
+     --checkpoint-dir "$CHECKPOINT_DIR" \
+     --incremental-checkpoints "$INCREMENTAL_CHECKPOINTS" \
+     --auction-kafka-topic "$AUCTION_TOPIC" \
+     --auction-kafka-group "$GROUP" \
+     --auction-broker "$KAFKA" \
+     --person-kafka-topic "$PERSON_TOPIC" \
+     --person-kafka-group "$GROUP" \
+     --person-broker "$KAFKA"  & \
 
     # ensure query is setup before kafkasource
     sleep 5
@@ -91,7 +100,13 @@ else
 
     sleep 5
     # run query, & guaqi, \ huanhang, pid kill, chmod +x file
-    ./bin/flink run $Queryjar --kafka-topic "$TOPICNAME" --kafka-group "$GROUP" --broker "$KAFKA" & \
+    ./bin/flink run $Queryjar \
+    --exchange-rate "$EXCHANGE_RAGE" \
+    --checkpoint-dir "$CHECKPOINT_DIR" \
+    --incremental-checkpoints "$INCREMENTAL_CHECKPOINTS" \
+    --kafka-topic "$TOPICNAME" \
+    --kafka-group "$GROUP" \
+    --broker "$KAFKA" & \
 
     # ensure query is setup before kafkasource
     sleep 5

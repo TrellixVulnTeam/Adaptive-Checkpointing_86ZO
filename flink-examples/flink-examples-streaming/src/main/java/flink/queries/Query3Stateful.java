@@ -34,6 +34,7 @@ import org.apache.flink.connector.kafka.source.KafkaSource;
 import org.apache.flink.connector.kafka.source.KafkaSourceOptions;
 import org.apache.flink.connector.kafka.source.enumerator.initializer.OffsetsInitializer;
 import org.apache.flink.connector.kafka.source.reader.deserializer.KafkaRecordDeserializationSchema;
+import org.apache.flink.contrib.streaming.state.EmbeddedRocksDBStateBackend;
 import org.apache.flink.streaming.api.CheckpointingMode;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.KeyedStream;
@@ -89,12 +90,12 @@ public class Query3Stateful {
                 "Reading Person data from kafka topic %s @ %s group: %s\n",
                 personKafkaTopic, personBroker, personKafkaGroup);
         System.out.println();
-        final String checkpointDir = params.get("checkpoint-dir");
+        final String checkpointDir = params.get("checkpoint-dir", "file:///home/Adaptive-Checkpointing-Storage/Checkpoint");
         boolean incrementalCheckpoints = params.getBoolean("incremental-checkpoints", false);
 
         final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
-        // env.setStateBackend(new EmbeddedRocksDBStateBackend(incrementalCheckpoints));
-        // env.getCheckpointConfig().setCheckpointStorage(checkpointDir);
+        env.setStateBackend(new EmbeddedRocksDBStateBackend(incrementalCheckpoints));
+        env.getCheckpointConfig().setCheckpointStorage(checkpointDir);
         env.enableCheckpointing(5000, CheckpointingMode.EXACTLY_ONCE);
         env.enableCheckpointAdapter(100000);
         env.disableOperatorChaining();

@@ -1,3 +1,5 @@
 GROUP="adaptive"
 EXCHANGE_RAGE="0.82F"
 RATELIST="50000_300000_1000_600000"
+CHECKPOINT_DIR="file:///home/Adaptive-Checkpointing-Storage/Checkpoint"
+INCREMENTAL_CHECKPOINTS="false"
