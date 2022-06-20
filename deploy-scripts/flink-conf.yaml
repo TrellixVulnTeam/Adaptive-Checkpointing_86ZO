@@ -108,7 +108,7 @@ parallelism.default: 1
 #==============================================================================
 
 state.backend: rocksdb
-state.checkpoints.dir: file:////home/tidb/Desktop/data/flink-simplified/flinkstate
+state.checkpoints.dir: hdfs://10.0.0.181:9000/checkpoint
 
 
 # The backend that will be used to store operator state checkpoints if

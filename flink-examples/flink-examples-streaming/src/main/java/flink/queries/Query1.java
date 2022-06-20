@@ -67,13 +67,16 @@ public class Query1 {
         final String checkpointDir =
                 params.get(
                         "checkpoint-dir", "file:///home/Adaptive-Checkpointing-Storage/Checkpoint");
+        final String hdfsDir =
+                params.get(
+                        "checkpoint-dir", "hdfs://10.0.0.181:9000/checkpoint");
         boolean incrementalCheckpoints = params.getBoolean("incremental-checkpoints", false);
 
         // set up the execution environment
         final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
 
         env.setStateBackend(new EmbeddedRocksDBStateBackend(incrementalCheckpoints));
-        env.getCheckpointConfig().setCheckpointStorage(checkpointDir);
+        env.getCheckpointConfig().setCheckpointStorage(hdfsDir);
         env.enableCheckpointing(5000, CheckpointingMode.EXACTLY_ONCE);
 
         env.disableOperatorChaining();
