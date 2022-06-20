@@ -53,7 +53,9 @@ public class Query5 {
         System.out.printf(
                 "Reading from kafka topic %s @ %s group: %s\n", kafkaTopic, broker, kafkaGroup);
         System.out.println();
-        final String checkpointDir = params.get("checkpoint-dir", "file:///home/Adaptive-Checkpointing-Storage/Checkpoint");
+        final String checkpointDir =
+                params.get(
+                        "checkpoint-dir", "file:///home/Adaptive-Checkpointing-Storage/Checkpoint");
         boolean incrementalCheckpoints = params.getBoolean("incremental-checkpoints", false);
 
         // set up the execution environment

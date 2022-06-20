@@ -1,7 +1,7 @@
 # Depoly Custom Flink 
 1. `ssh ubuntu@128.31.26.144`
-2. `rm -rf Adaptive-Checkpointing`
-3. `git clone https://github.com/CASP-Systems-BU/Adaptive-Checkpointing.git` or `git pull` 
+2. `rm -rf Adaptive-Checkpointing` and `git clone https://github.com/CASP-Systems-BU/Adaptive-Checkpointing.git` 
+3.  or `git stash` `git pull` and `git stash pop`
 4. `cd Adaptive-Checkpointing/deploy-scripts/`, follow steps in deploy-scripts/README.md
 
 # Start A Experiment

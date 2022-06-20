@@ -88,7 +88,7 @@
 							<finalName>Query1</finalName>
 							<archive>
 								<manifestEntries>
-									<mainClass>flink.queries.Query1</mainClass>
+									<program-class>flink.queries.Query1</program-class>
 								</manifestEntries>
 							</archive>
 						</configuration>
@@ -103,7 +103,7 @@
 							<finalName>Query3</finalName>
 							<archive>
 								<manifestEntries>
-									<mainClass>flink.queries.Query3Stateful</mainClass>
+									<program-class>flink.queries.Query3Stateful</program-class>
 								</manifestEntries>
 							</archive>
 						</configuration>
@@ -118,7 +118,7 @@
 							<finalName>Query5</finalName>
 							<archive>
 								<manifestEntries>
-									<mainClass>flink.queries.Query5</mainClass>
+									<program-class>flink.queries.Query5</program-class>
 								</manifestEntries>
 							</archive>
 						</configuration>
@@ -133,7 +133,7 @@
 							<finalName>Query8</finalName>
 							<archive>
 								<manifestEntries>
-									<mainClass>flink.queries.Query8</mainClass>
+									<program-class>flink.queries.Query8</program-class>
 								</manifestEntries>
 							</archive>
 						</configuration>
@@ -148,7 +148,7 @@
 							<finalName>KafkaSourceBid</finalName>
 							<archive>
 								<manifestEntries>
-									<mainClass>flink.kafkaSources.KafkaSourceBid</mainClass>
+									<program-class>flink.kafkaSources.KafkaSourceBid</program-class>
 								</manifestEntries>
 							</archive>
 						</configuration>
@@ -163,7 +163,7 @@
 							<finalName>KafkaSourceAuction</finalName>
 							<archive>
 								<manifestEntries>
-									<mainClass>flink.kafkaSources.KafkaSourceAuction</mainClass>
+									<program-class>flink.kafkaSources.KafkaSourceAuction</program-class>
 								</manifestEntries>
 							</archive>
 						</configuration>
@@ -178,7 +178,7 @@
 							<finalName>KafkaSourcePerson</finalName>
 							<archive>
 								<manifestEntries>
-									<mainClass>flink.kafkaSources.KafkaSourcePerson</mainClass>
+									<program-class>flink.kafkaSources.KafkaSourcePerson</program-class>
 								</manifestEntries>
 							</archive>
 						</configuration>

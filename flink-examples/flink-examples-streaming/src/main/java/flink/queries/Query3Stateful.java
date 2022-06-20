@@ -90,7 +90,9 @@ public class Query3Stateful {
                 "Reading Person data from kafka topic %s @ %s group: %s\n",
                 personKafkaTopic, personBroker, personKafkaGroup);
         System.out.println();
-        final String checkpointDir = params.get("checkpoint-dir", "file:///home/Adaptive-Checkpointing-Storage/Checkpoint");
+        final String checkpointDir =
+                params.get(
+                        "checkpoint-dir", "file:///home/Adaptive-Checkpointing-Storage/Checkpoint");
         boolean incrementalCheckpoints = params.getBoolean("incremental-checkpoints", false);
 
         final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();

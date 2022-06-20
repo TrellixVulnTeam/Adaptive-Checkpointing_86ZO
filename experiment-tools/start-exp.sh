@@ -5,6 +5,9 @@ USAGE="Usage: start-exp.sh (1/3/5/8)"
 KAFKAIP="128.31.25.127"
 KAFKA="$KAFKAIP:9092"
 
+# clean logs before a new experiment start
+rm "$FLINKROOT"/build-target/log/*
+
 bin=`dirname "$0"`
 bin=`cd "$bin"; pwd`
 . "$bin"/config.sh
