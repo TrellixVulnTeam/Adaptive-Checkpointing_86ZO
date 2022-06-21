@@ -16,16 +16,15 @@ rm $STORAGE_FILE
 # 2. use a loop to clean every jobs
 joblist=()
 while IFS= read -r line; do
-  job= $( grep -o '[0-9a-fA-F]\{32\}' <<< "$line" )
+  job=$( grep -o '[0-9a-fA-F]\{32\}' <<< "$line" )
   if [ ! -z "$job" ]; then
-    printf '%s\n' $job
     joblist+=("$job")
   fi
 done < $STORAGE_FILE
 
 for job in "${joblist[@]}"
 do
-  echo "$job"
+  printf 'delete %s\n' $job
   ./bin/flink cancel "$job"
 done
 

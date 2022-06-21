@@ -49,6 +49,7 @@ echo  $QUERY_TO_RUN
 
 # submit Query JOB
 cd "$FLINKROOT"/flink-dist/target/flink-1.14.0-bin/flink-1.14.0/ || (echo cd fails && exit 1)
+TEMP_JOBID_STORAGE="$bin"/getJobid
 pwd
 if [ $withTwoSource = true ]; then
     echo 2 Source
@@ -56,7 +57,7 @@ if [ $withTwoSource = true ]; then
     Queryjar="$bin"/"$TARGET_DIR"/"$QUERY_TO_RUN.jar"
     auctionSjar="$bin"/"$TARGET_DIR"/"$AUCTION_SOURCE.jar"
     personSjar="$bin"/"$TARGET_DIR"/"$PERSON_SOURCE.jar"
-    if [ ! -f  $Queryjar ] || [ ! -f  $auctionSjar ] || [ ! -f  $personSjar ] ; then
+    if [ ! -f  "$Queryjar" ] || [ ! -f  "$auctionSjar" ] || [ ! -f  "$personSjar" ] ; then
         echo "not enough jars"
         exit 1
     fi
@@ -75,7 +76,7 @@ if [ $withTwoSource = true ]; then
 
     sleep 5
     # run query
-    ./bin/flink run $Queryjar \
+    ( ./bin/flink run --detached "$Queryjar" \
      --exchange-rate "$EXCHANGE_RAGE" \
      --checkpoint-dir "$HDFS_DIR" \
      --incremental-checkpoints "$INCREMENTAL_CHECKPOINTS" \
@@ -84,21 +85,27 @@ if [ $withTwoSource = true ]; then
      --auction-broker "$KAFKA" \
      --person-kafka-topic "$PERSON_TOPIC" \
      --person-kafka-group "$GROUP" \
-     --person-broker "$KAFKA"  & \
+     --person-broker "$KAFKA"  & ) > "$TEMP_JOBID_STORAGE"
 
     # ensure query is setup before kafkasource
-    sleep 5
+     while : ; do
+         job=$( grep -o '[0-9a-fA-F]\{32\}' < "$TEMP_JOBID_STORAGE" )
+         if [ ! -z "$job" ]; then
+           printf 'Query JobID: %s\n' "$job"
+           break;
+         fi
+     done
 
     # run auction source
-    ./bin/flink run $auctionSjar --kafka-topic "$AUCTION_TOPIC" --broker "$KAFKA" --ratelist "$RATELIST" & \
+    ./bin/flink run "$auctionSjar" --kafka-topic "$AUCTION_TOPIC" --broker "$KAFKA" --ratelist "$RATELIST" & \
 
     # run person source
-    ./bin/flink run $personSjar --kafka-topic "$PERSON_TOPIC" --broker "$KAFKA" --ratelist "$RATELIST" & \
+    ./bin/flink run "$personSjar" --kafka-topic "$PERSON_TOPIC" --broker "$KAFKA" --ratelist "$RATELIST" & \
 
 else
     Queryjar="$bin"/"$TARGET_DIR"/"$QUERY_TO_RUN.jar"
     bidSjar="$bin"/"$TARGET_DIR"/"$BID_SOURCE.jar"
-    if [ ! -f  $Queryjar ] || [ ! -f  $bidSjar ] ; then
+    if [ ! -f  "$Queryjar" ] || [ ! -f  "$bidSjar" ] ; then
         echo "not enough jars"
         exit 1
     fi
@@ -111,19 +118,25 @@ else
 
     sleep 5
     # run query, & guaqi, \ huanhang, pid kill, chmod +x file
-    ./bin/flink run $Queryjar \
+    ( ./bin/flink run --detached "$Queryjar" \
     --exchange-rate "$EXCHANGE_RAGE" \
     --checkpoint-dir "$CHECKPOINT_DIR" \
     --incremental-checkpoints "$INCREMENTAL_CHECKPOINTS" \
     --kafka-topic "$TOPICNAME" \
     --kafka-group "$GROUP" \
-    --broker "$KAFKA" & \
+    --broker "$KAFKA" & ) > "$TEMP_JOBID_STORAGE"
 
     # ensure query is setup before kafkasource
-    sleep 5
+     while : ; do
+         job=$( grep -o '[0-9a-fA-F]\{32\}' < "$TEMP_JOBID_STORAGE" )
+         if [ ! -z "$job" ]; then
+           printf 'Query JobID: %s\n' "$job"
+           break;
+         fi
+     done
 
     # run auction source
-    ./bin/flink run $bidSjar --kafka-topic "$TOPICNAME" --broker "$KAFKA" --ratelist "$RATELIST" & \
+    ./bin/flink run "$bidSjar" --kafka-topic "$TOPICNAME" --broker "$KAFKA" --ratelist "$RATELIST" & \
 fi
 
 
