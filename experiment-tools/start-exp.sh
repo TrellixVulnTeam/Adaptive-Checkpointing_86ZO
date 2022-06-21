@@ -15,7 +15,7 @@ echo $bin
 # clean logs before a new experiment start
 rm "$FLINKROOT"/build-target/log/*
 # clean all previous kafka topics
-scp -r "$bin"/clear-kafka-topics.sh "ubuntu@$KAFKAIP": kafka
+scp -r "$bin"/clear-kafka-topics.sh "ubuntu@$KAFKAIP":kafka/
 ssh "ubuntu@$KAFKAIP" "cd kafka/ && ./clear-kafka-topics.sh $KAFKA"
 
 # source config
