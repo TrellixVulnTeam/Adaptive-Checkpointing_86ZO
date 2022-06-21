@@ -8,23 +8,25 @@ STORAGE_FILE=allprevjobs
 
 export FLINKROOT=$(cd ..; pwd)
 echo $FLINKROOT
-cd "$FLINKROOT"/flink-dist/target/flink-1.14.0-bin/flink-1.14.0/ || exit 1
+cd "$FLINKROOT"/flink-dist/target/flink-1.14.0-bin/flink-1.14.0/ || (echo cd fails && exit 1)
 
 rm $STORAGE_FILE
 # 1. read all kafka jobs as list
-./bin/flink list > $STORAGE_FILE & \
+./bin/flink list > "$STORAGE_FILE"
 # 2. use a loop to clean every jobs
 joblist=()
 while IFS= read -r line; do
-  job="$line"
-  printf '%s\n' $job
-  joblist+=("$line")
+  job= $( grep -o '[0-9a-fA-F]\{32\}' <<< "$line" )
+  if [ ! -z "$job" ]; then
+    printf '%s\n' $job
+    joblist+=("$job")
+  fi
 done < $STORAGE_FILE
 
 for job in "${joblist[@]}"
 do
   echo "$job"
-  ./bin/flink cancel "$job" & \
+  ./bin/flink cancel "$job"
 done
 
 # 3. remove alljobs

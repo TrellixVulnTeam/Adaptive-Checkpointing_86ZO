@@ -16,9 +16,9 @@ rm $STORAGE_FILE
 # 2. use a loop to clean every topics
 topiclist=()
 while IFS= read -r line; do
-  topic="$line"
-  printf '%s\n' $topic
-  topiclist+=("$line")
+  if [ ! -z "$line" ]; then
+    topiclist+=("$line")
+  fi
 done < $STORAGE_FILE
 
 for topic in "${topiclist[@]}"

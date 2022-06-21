@@ -113,7 +113,7 @@ else
     # run query, & guaqi, \ huanhang, pid kill, chmod +x file
     ./bin/flink run $Queryjar \
     --exchange-rate "$EXCHANGE_RAGE" \
-    --checkpoint-dir "$HDFS_DIR" \
+    --checkpoint-dir "$CHECKPOINT_DIR" \
     --incremental-checkpoints "$INCREMENTAL_CHECKPOINTS" \
     --kafka-topic "$TOPICNAME" \
     --kafka-group "$GROUP" \
