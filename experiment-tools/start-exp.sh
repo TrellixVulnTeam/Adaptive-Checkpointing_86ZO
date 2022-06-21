@@ -5,14 +5,19 @@ USAGE="Usage: start-exp.sh (1/3/5/8)"
 KAFKAIP="128.31.25.127"
 KAFKA="$KAFKAIP:9092"
 
-# clean logs before a new experiment start
-rm "$FLINKROOT"/build-target/log/*
-
 bin=`dirname "$0"`
 bin=`cd "$bin"; pwd`
+echo $bin
+
+# clean logs before a new experiment start
+rm "$FLINKROOT"/build-target/log/*
+# clean all previous kafka topics
+scp -r "$bin"/clear-kafka-topics.sh "ubuntu@$KAFKAIP": kafka
+ssh "ubuntu@$KAFKAIP" "cd kafka/ && ./clear-kafka-topics.sh $KAFKA"
+
+# source config
 . "$bin"/config.sh
 . "$bin"/argsconfig.sh
-echo $bin
 
 QUERY=$1
 QUERY_TO_RUN=""

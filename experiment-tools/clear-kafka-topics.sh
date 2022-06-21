@@ -1,0 +1,31 @@
+#!/bin/bash
+# scp this file to kafka machine cd kafka/
+# ssh to kafka machine and sh this file
+USAGE="Usage: clear-kafka-topics.sh (IP:PORT)"
+
+# 128.31.25.127:9092
+KAFKA=$1
+echo $KAFKA
+
+STORAGE_FILE=alltopics
+# clear previous file
+
+rm $STORAGE_FILE
+# 1. read all kafka topics as list
+./bin/kafka-topics.sh --bootstrap-server $KAFKA --list > $STORAGE_FILE
+# 2. use a loop to clean every topics
+topiclist=()
+while IFS= read -r line; do
+  topic="$line"
+  printf '%s\n' $topic
+  topiclist+=("$line")
+done < $STORAGE_FILE
+
+for topic in "${topiclist[@]}"
+do
+  echo $topic
+  ./bin/kafka-topics.sh --bootstrap-server $KAFKA --delete --topic $topic
+done
+
+# 3. remove alltopics
+rm $STORAGE_FILE
