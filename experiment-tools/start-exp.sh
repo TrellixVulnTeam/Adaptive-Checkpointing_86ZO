@@ -9,6 +9,9 @@ bin=`dirname "$0"`
 bin=`cd "$bin"; pwd`
 echo $bin
 
+# clean all previous jobs
+. "$bin"/clear-prev-jobs.sh
+
 # clean logs before a new experiment start
 rm "$FLINKROOT"/build-target/log/*
 # clean all previous kafka topics
@@ -87,10 +90,10 @@ if [ $withTwoSource = true ]; then
     sleep 5
 
     # run auction source
-    ./bin/flink run $auctionSjar --kafka-topic "$AUCTION_TOPIC" --broker "$KAFKA" --ratelist "$RATELIST"  & \
+    ./bin/flink run $auctionSjar --kafka-topic "$AUCTION_TOPIC" --broker "$KAFKA" --ratelist "$RATELIST" & \
 
     # run person source
-    ./bin/flink run $personSjar --kafka-topic "$PERSON_TOPIC" --broker "$KAFKA" --ratelist "$RATELIST"  & \
+    ./bin/flink run $personSjar --kafka-topic "$PERSON_TOPIC" --broker "$KAFKA" --ratelist "$RATELIST" & \
 
 else
     Queryjar="$bin"/"$TARGET_DIR"/"$QUERY_TO_RUN.jar"

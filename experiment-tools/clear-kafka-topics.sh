@@ -23,8 +23,8 @@ done < $STORAGE_FILE
 
 for topic in "${topiclist[@]}"
 do
-  echo $topic
-  ./bin/kafka-topics.sh --bootstrap-server $KAFKA --delete --topic $topic
+  echo "$topic"
+  ./bin/kafka-topics.sh --bootstrap-server "$KAFKA" --delete --topic "$topic"
 done
 
 # 3. remove alltopics
