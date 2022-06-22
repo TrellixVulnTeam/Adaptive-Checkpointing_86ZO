@@ -1,7 +1,7 @@
 import requests
 import logging
 import json
-
+import sys
 
 class FlinkException(Exception):
     pass
@@ -11,7 +11,6 @@ class Flink:
     '''
     Flink REST API connector.
 
-    TODO: Parse the response and return a dict.
     '''
 
     def __init__(self, endpoint="http://localhost:8081"):
@@ -198,33 +197,29 @@ def _test():
     from pprint import pprint
     flink = Flink(endpoint="http://128.31.26.144:8081/")
     print("Endpoint is:", flink.get_endpoint())
-    jobs = flink.list_jobs()
-    print("Jobs:", jobs)
-    print("Job aggregated metrics:", flink.get_job_agg_metrics())
-    for job in jobs['jobs']:
-        job_id = job['id']
-        print("Job ID:", job_id)
-        print("Job details:")
-        job_details = flink.get_job_details(job_id)
-        pprint(job_details)
-        print("Job metrics:")
-        pprint(flink.get_job_metrics(job_id))
-        print("Job plan:")
-        pprint(flink.get_job_plan(job_id))
-        for task in job_details['vertices']:
-            task_id = task['id']
-            print("Task ID:", task_id)
-            print("Task status:")
-            pprint(flink.get_task_status(job_id, task_id))
-            print("Task backpressure:")
-            pprint(flink.get_task_backpressure(job_id, task_id))
-            print("Task metrics:")
-            pprint(flink.get_task_metrics(job_id, task_id))
-            print("Task Metrics Details:")
-            pprint(flink.get_task_metrics_details(
-                job_id, task_id, '0.numRecordsInPerSecond'))
-            print("Subtask metrics:")
-            pprint(flink.get_subtask_metrics(job_id, task_id))
+    job_id = sys.argv[1]
+    print("Job ID:", job_id)
+    print("Job details:")
+    job_details = flink.get_job_details(job_id)
+    pprint(job_details)
+    print("Job metrics:")
+    pprint(flink.get_job_metrics(job_id))
+    print("Job plan:")
+    pprint(flink.get_job_plan(job_id))
+    for task in job_details['vertices']:
+        task_id = task['id']
+        print("Task ID:", task_id)
+        print("Task status:")
+        pprint(flink.get_task_status(job_id, task_id))
+        print("Task backpressure:")
+        pprint(flink.get_task_backpressure(job_id, task_id))
+        print("Task metrics:")
+        pprint(flink.get_task_metrics(job_id, task_id))
+        print("Task Metrics Details:")
+        pprint(flink.get_task_metrics_details(
+            job_id, task_id, '0.numRecordsInPerSecond'))
+        print("Subtask metrics:")
+        pprint(flink.get_subtask_metrics(job_id, task_id))
 
 if __name__ == "__main__":
     _test()

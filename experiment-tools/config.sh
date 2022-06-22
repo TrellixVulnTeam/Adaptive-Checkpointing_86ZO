@@ -6,6 +6,13 @@ BID_SOURCE="KafkaSourceBid"
 AUCTION_SOURCE="KafkaSourceAuction"
 PERSON_SOURCE="KafkaSourcePerson"
 
+# for job package
 TARGET_DIR="target"
+
+# for data collection
 FETCH_INTERVAL=10000
 FETCH_TOTAL_TIME=30000000
+
+# for exp-2
+IS_KILL_TASKMANAGER=false
+KILL_TIME=10000000
