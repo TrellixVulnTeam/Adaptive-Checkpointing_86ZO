@@ -78,7 +78,7 @@ if [ $withTwoSource = true ]; then
     # run query
     ( ./bin/flink run --detached "$Queryjar" \
      --exchange-rate "$EXCHANGE_RAGE" \
-     --checkpoint-dir "$HDFS_DIR" \
+     --checkpoint-dir "$CHECKPOINT_DIR" \
      --incremental-checkpoints "$INCREMENTAL_CHECKPOINTS" \
      --auction-kafka-topic "$AUCTION_TOPIC" \
      --auction-kafka-group "$GROUP" \

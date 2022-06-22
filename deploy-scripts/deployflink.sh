@@ -25,6 +25,9 @@ while IFS= read -r line; do
   iplist+=("$line")
 done < workers
 
+#remove useless jars
+rm -rf "$FLINKROOT"/flink-dist/target/flink-1.14.0-bin/flink-1.14.0/examples
+
 for ip in "${iplist[@]}"
 do
   if [[ $ip != $localip ]]; then
