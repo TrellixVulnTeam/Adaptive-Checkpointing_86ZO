@@ -4,6 +4,7 @@ echo $FLINKROOT
 USAGE="Usage: start-exp.sh (1/3/5/8)"
 KAFKAIP="128.31.25.127"
 KAFKA="$KAFKAIP:9092"
+JOBID_REGEX='[0-9a-fA-F]\{32\}'
 
 bin=`dirname "$0"`
 bin=`cd "$bin"; pwd`
@@ -49,8 +50,18 @@ echo  $QUERY_TO_RUN
 
 # submit Query JOB
 cd "$FLINKROOT"/flink-dist/target/flink-1.14.0-bin/flink-1.14.0/ || (echo cd fails && exit 1)
+
+# Jobid storage
 TEMP_JOBID_STORAGE="$bin"/getJobid
-pwd
+TEMP_BID_SOURCE_ID_STORAGE="$bin"/getBidSourceid
+TEMP_AUCTION_SOURCE_ID_STORAGE="$bin"/getAuctionSourceid
+TEMP_PERSON_SOURCE_ID_STORAGE="$bin"/getPersonSourceid
+rm $TEMP_JOBID_STORAGE
+rm $TEMP_BID_SOURCE_ID_STORAGE
+rm $TEMP_AUCTION_SOURCE_ID_STORAGE
+rm $TEMP_PERSON_SOURCE_ID_STORAGE
+QUERY_ID=""
+
 if [ $withTwoSource = true ]; then
     echo 2 Source
 
@@ -89,18 +100,43 @@ if [ $withTwoSource = true ]; then
 
     # ensure query is setup before kafkasource
      while : ; do
-         job=$( grep -o '[0-9a-fA-F]\{32\}' < "$TEMP_JOBID_STORAGE" )
+         job=$( grep -o "$JOBID_REGEX" < "$TEMP_JOBID_STORAGE" )
          if [ ! -z "$job" ]; then
            printf 'Query JobID: %s\n' "$job"
+           QUERY_ID=$job
            break;
          fi
      done
 
     # run auction source
-    ./bin/flink run "$auctionSjar" --kafka-topic "$AUCTION_TOPIC" --broker "$KAFKA" --ratelist "$RATELIST" & \
+    ( ./bin/flink run "$auctionSjar" \
+     --kafka-topic "$AUCTION_TOPIC" \
+     --broker "$KAFKA" \
+     --ratelist "$RATELIST" & ) >  "$TEMP_AUCTION_SOURCE_ID_STORAGE"
+
+    # ensure auction source is setup
+    while : ; do
+        job=$( grep -o "$JOBID_REGEX" < "$TEMP_AUCTION_SOURCE_ID_STORAGE" )
+        if [ ! -z "$job" ]; then
+          printf 'Auction Source JobID: %s\n' "$job"
+          break;
+        fi
+    done
 
     # run person source
-    ./bin/flink run "$personSjar" --kafka-topic "$PERSON_TOPIC" --broker "$KAFKA" --ratelist "$RATELIST" & \
+    ( ./bin/flink run "$personSjar" \
+     --kafka-topic "$PERSON_TOPIC" \
+     --broker "$KAFKA" \
+     --ratelist "$RATELIST" & ) > "$TEMP_PERSON_SOURCE_ID_STORAGE"
+
+    # ensure person source is setup
+    while : ; do
+        job=$( grep -o "$JOBID_REGEX" < "$TEMP_PERSON_SOURCE_ID_STORAGE" )
+        if [ ! -z "$job" ]; then
+          printf 'Auction Source JobID: %s\n' "$job"
+          break;
+        fi
+    done
 
 else
     Queryjar="$bin"/"$TARGET_DIR"/"$QUERY_TO_RUN.jar"
@@ -128,15 +164,29 @@ else
 
     # ensure query is setup before kafkasource
      while : ; do
-         job=$( grep -o '[0-9a-fA-F]\{32\}' < "$TEMP_JOBID_STORAGE" )
+         job=$( grep -o "$JOBID_REGEX" < "$TEMP_JOBID_STORAGE" )
          if [ ! -z "$job" ]; then
            printf 'Query JobID: %s\n' "$job"
+           QUERY_ID=$job
            break;
          fi
      done
 
     # run auction source
-    ./bin/flink run "$bidSjar" --kafka-topic "$TOPICNAME" --broker "$KAFKA" --ratelist "$RATELIST" & \
+    ( ./bin/flink run "$bidSjar" \
+     --kafka-topic "$TOPICNAME" \
+     --broker "$KAFKA" \
+     --ratelist "$RATELIST" & ) > "$TEMP_BID_SOURCE_ID_STORAGE"
+
+    # ensure bid source is setup
+     while : ; do
+         job=$( grep -o "$JOBID_REGEX" < "$TEMP_BID_SOURCE_ID_STORAGE" )
+         if [ ! -z "$job" ]; then
+           printf 'Bod Source JobID: %s\n' "$job"
+           break;
+         fi
+     done
 fi
 
-
+# start collecting data here
+echo "$QUERY_ID"
