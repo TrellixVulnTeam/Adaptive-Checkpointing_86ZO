@@ -188,5 +188,9 @@ else
      done
 fi
 
-# start collecting data here
+# start a timer to collect data here
 echo "$QUERY_ID"
+
+# experiment end. collectlog.sh(need modification), mv all experiment data to QueryName + timestamp""
+
+# clear all jobs and topics
