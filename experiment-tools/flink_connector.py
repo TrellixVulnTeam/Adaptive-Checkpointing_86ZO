@@ -214,8 +214,6 @@ def main(job_id, target_path, interval, repeat):
     # pprint(job_plan)
 #     num_bytes_in_per_second_record = []
 #     num_records_in_per_second_record = []
-    num_bytes_in_per_second_key = "numBytesInPerSecond"
-    num_records_in_per_second_key = "numRecordsInPerSecond"
     number_bytes_in_per_second_query = ""
     all_queries_keys = ["0.numBytesInPerSecond", "0.numRecordsInPerSecond"]
     for node in nodes_info:
