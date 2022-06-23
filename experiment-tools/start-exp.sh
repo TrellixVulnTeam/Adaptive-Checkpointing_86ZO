@@ -190,6 +190,8 @@ fi
 
 # start a timer to collect data here
 echo "$QUERY_ID"
+echo "$FETCH_INTERVAL"
+echo "$FETCH_TOTAL_TIME"
 
 # experiment end. collectlog.sh(need modification), mv all experiment data to QueryName + timestamp""
 
