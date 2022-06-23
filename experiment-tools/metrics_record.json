@@ -1,0 +1,53 @@
+{
+    "6108a2b01f8518cedda14db837358577":{
+        "name":"Latency Sink",
+        "0.numBytesInPerSecond":[
+            "7.6",
+            "7.6",
+            "7.6",
+            "7.6",
+            "7.6"
+        ],
+        "0.numRecordsInPerSecond":[
+            "0.0",
+            "0.0",
+            "0.0",
+            "0.0",
+            "0.0"
+        ]
+    },
+    "afcfe443e23d73c4737dc3635c2866c0":{
+        "name":"Mapper",
+        "0.numBytesInPerSecond":[
+            "7.6",
+            "7.6",
+            "7.6",
+            "7.6",
+            "7.6"
+        ],
+        "0.numRecordsInPerSecond":[
+            "0.0",
+            "0.0",
+            "0.0",
+            "0.0",
+            "0.0"
+        ]
+    },
+    "bc764cd8ddf7a0cff126f51c16239658":{
+        "name":"Source: Kafka source",
+        "0.numBytesInPerSecond":[
+            "0.0",
+            "0.0",
+            "0.0",
+            "0.0",
+            "0.0"
+        ],
+        "0.numRecordsInPerSecond":[
+            "0.0",
+            "0.0",
+            "0.0",
+            "0.0",
+            "0.0"
+        ]
+    }
+}

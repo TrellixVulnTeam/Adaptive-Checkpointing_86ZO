@@ -38,3 +38,14 @@ The script will automatically submit the jars of Query and its Source, just spec
 ./start-exp.sh 8 # start Query8
 ```
 # stop Experiment
+
+# record metrics
+```shell
+python3 flink_connector.py --job_id job_id --target_path target_path --interval interval(second) --repeat repeat
+
+# default value:
+# target_path "./metrics_record.json"
+# interval 5
+# repeat 5
+```
+

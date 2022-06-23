@@ -1,7 +1,10 @@
 import requests
 import logging
+import os
+import argparse
 import json
 import sys
+import time
 
 class FlinkException(Exception):
     pass
@@ -13,7 +16,7 @@ class Flink:
 
     '''
 
-    def __init__(self, endpoint="http://localhost:8081"):
+    def __init__(self, endpoint="http://128.31.26.144:8081"):
         self._endpoint = endpoint
 
     def get_endpoint(self):
@@ -177,7 +180,7 @@ class Flink:
         response.raise_for_status()
         return response.json()
 
-    def get_subtask_metrics_details(self, jobid, taskid, subtaskid, fieldid):
+    def get_subtask_metrics_details(self, jobid, taskid, fieldid):
         '''
         Get subtask metrics by ID
 
@@ -187,39 +190,69 @@ class Flink:
 
         '''
         url = "{}/jobs/{}/vertices/{}/subtasks/metrics?get={}".format(
-            self._endpoint, jobid, taskid, subtaskid, fieldid)
+            self._endpoint, jobid, taskid, fieldid)
         response = requests.get(url)
         response.raise_for_status()
         return response.json()
 
 
-def _test():
-    from pprint import pprint
+def main(job_id, target_path, interval, repeat):
+    metrics_info = {}
     flink = Flink(endpoint="http://128.31.26.144:8081/")
-    print("Endpoint is:", flink.get_endpoint())
-    job_id = sys.argv[1]
-    print("Job ID:", job_id)
-    print("Job details:")
+#     print("Endpoint is:", flink.get_endpoint())
+#     job_id = sys.argv[1]
+#     print("Job ID:", job_id)
+#     print("Job details:")
     job_details = flink.get_job_details(job_id)
-    pprint(job_details)
-    print("Job metrics:")
-    pprint(flink.get_job_metrics(job_id))
-    print("Job plan:")
-    pprint(flink.get_job_plan(job_id))
-    for task in job_details['vertices']:
-        task_id = task['id']
-        print("Task ID:", task_id)
-        print("Task status:")
-        pprint(flink.get_task_status(job_id, task_id))
-        print("Task backpressure:")
-        pprint(flink.get_task_backpressure(job_id, task_id))
-        print("Task metrics:")
-        pprint(flink.get_task_metrics(job_id, task_id))
-        print("Task Metrics Details:")
-        pprint(flink.get_task_metrics_details(
-            job_id, task_id, '0.numRecordsInPerSecond'))
-        print("Subtask metrics:")
-        pprint(flink.get_subtask_metrics(job_id, task_id))
+#     pprint(job_details)
+#     print("Job metrics:")
+#     pprint(flink.get_job_metrics(job_id))
+#     print("Job plan:")
+    job_plan = flink.get_job_plan(job_id)
+    nodes_info = job_plan['plan']['nodes']
+
+    # pprint(job_plan)
+#     num_bytes_in_per_second_record = []
+#     num_records_in_per_second_record = []
+    num_bytes_in_per_second_key = "numBytesInPerSecond"
+    num_records_in_per_second_key = "numRecordsInPerSecond"
+    number_bytes_in_per_second_query = ""
+    all_queries_keys = ["0.numBytesInPerSecond", "0.numRecordsInPerSecond"]
+    for node in nodes_info:
+        node_key = node['id']
+        node_value = {}
+        node_value['name'] = node['description']
+        for query_key in all_queries_keys:
+            node_value[query_key] = []
+        metrics_info[node_key]  = node_value
+
+
+    for i in range(0, repeat):
+        time.sleep(interval)
+        for task in job_details['vertices']:
+            task_id = task['id']
+            task_info = metrics_info[task_id]
+
+            for query_key in all_queries_keys:
+                 query_result = flink.get_task_metrics_details(job_id, task_id, query_key)
+                 instant_value = query_result[0]["value"]
+                 task_info[query_key].append(instant_value)
+
+    write_to_file(target_path, metrics_info)
+
+def write_to_file(target_path, metrics_info):
+    if os.path.exists(target_path):
+        os.remove(target_path)
+
+    with open(target_path, 'w') as w:
+        json.dump(metrics_info, w, indent=4, separators=(',', ':'))
 
 if __name__ == "__main__":
-    _test()
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--job_id', type=str)
+    parser.add_argument('--target_path', type=str, default="./metrics_record.json")
+    parser.add_argument('--interval', type=int, default=5)
+    parser.add_argument('--repeat', type=int, default=5)
+    args = parser.parse_args()
+
+    main(args.job_id, args.target_path, args.interval, args.repeat)
