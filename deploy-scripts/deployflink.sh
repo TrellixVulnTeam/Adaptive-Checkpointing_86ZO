@@ -14,7 +14,7 @@ cp "$FLINKROOT"/deploy-scripts/* "$FLINKROOT"/flink-dist/target/flink-1.14.0-bin
 cd "$FLINKROOT"/flink-dist/target/flink-1.14.0-bin/flink-1.14.0/bin
 ./stop-cluster.sh
 
-# clean previous log files
+# clean jobmaster log files before copy files to taskmanagers
 rm "$FLINKROOT"/build-target/log/*
 
 # deploy workers

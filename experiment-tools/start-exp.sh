@@ -14,7 +14,11 @@ echo $bin
 . "$bin"/clear-prev-jobs.sh
 
 # clean logs before a new experiment start
-rm "$FLINKROOT"/build-target/log/*
+# rm "$FLINKROOT"/build-target/log/* will not clean taskmanagers' lgo, have to restart-cluster to clean log file
+cd "$FLINKROOT"/deploy-scripts/ || (echo "cd fail" && exit 1)
+. deployflink.sh
+cd "$bin" || (echo "cd fail" && exit 1)
+
 # clean all previous kafka topics
 scp -r "$bin"/clear-kafka-topics.sh "ubuntu@$KAFKAIP":kafka/
 ssh "ubuntu@$KAFKAIP" "cd kafka/ && ./clear-kafka-topics.sh $KAFKA"
