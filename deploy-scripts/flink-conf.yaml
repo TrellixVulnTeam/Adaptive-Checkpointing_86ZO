@@ -107,7 +107,7 @@ parallelism.default: 1
 # Fault tolerance and checkpointing
 #==============================================================================
 
-state.backend: rocksdb
+# state.backend: rocksdb
 # state.checkpoints.dir: hdfs://10.0.0.181:9000/checkpoint
 
 

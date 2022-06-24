@@ -1,6 +1,6 @@
 GROUP="adaptive"
 EXCHANGE_RAGE="0.82F"
 RATELIST="50000_300000_1000_600000"
-CHECKPOINT_DIR="file:///home/Adaptive-Checkpointing-Storage/Checkpoint"
+CHECKPOINT_DIR="file:///home/ubuntu/Adaptive-Checkpointing-Storage/Checkpoint"
 HDFS_DIR="hdfs://10.0.0.181:9000/checkpoint"
 INCREMENTAL_CHECKPOINTS="false"

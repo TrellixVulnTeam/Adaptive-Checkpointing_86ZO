@@ -195,6 +195,8 @@ class Flink:
         response.raise_for_status()
         return response.json()
 
+    def get_
+
 
 def main(job_id, target_path, interval, repeat):
     metrics_info = {}
