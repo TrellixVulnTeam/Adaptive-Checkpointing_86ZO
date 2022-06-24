@@ -195,10 +195,24 @@ class Flink:
         response.raise_for_status()
         return response.json()
 
-    def get_
+    def get_all_checkpoints(self, jobid):
+        url = "{}/jobs/{}/checkpoints".format(
+            self._endpoint, jobid)
+        response = requests.get(url)
+        response.raise_for_status()
+        return response.json()
+
+    def get_checkpoint_detail(self, jobid, checkpointid):
+        url = "{}/jobs/{}/checkpoints/details/{}".format(
+            self._endpoint, jobid, checkpointid)
+        response = requests.get(url)
+        response.raise_for_status()
+        return response.json()
+
 
 
 def main(job_id, target_path, interval, repeat):
+    from pprint import pprint
     metrics_info = {}
     flink = Flink(endpoint="http://128.31.26.144:8081/")
 #     print("Endpoint is:", flink.get_endpoint())
@@ -218,6 +232,7 @@ def main(job_id, target_path, interval, repeat):
 #     num_records_in_per_second_record = []
     number_bytes_in_per_second_query = ""
     all_queries_keys = ["0.numBytesInPerSecond", "0.numRecordsInPerSecond"]
+
     for node in nodes_info:
         node_key = node['id']
         node_value = {}
@@ -226,19 +241,18 @@ def main(job_id, target_path, interval, repeat):
             node_value[query_key] = []
         metrics_info[node_key]  = node_value
 
-
-    for i in range(0, repeat):
+    for i in range(0, 1):
         time.sleep(interval)
         for task in job_details['vertices']:
             task_id = task['id']
             task_info = metrics_info[task_id]
-
-            for query_key in all_queries_keys:
-                 query_result = flink.get_task_metrics_details(job_id, task_id, query_key)
-                 instant_value = query_result[0]["value"]
-                 task_info[query_key].append(instant_value)
-
-    write_to_file(target_path, metrics_info)
+#             for query_key in all_queries_keys:
+#                  query_result = flink.get_task_metrics_details(job_id, task_id, query_key)
+#                  instant_value = query_result[0]["value"]
+#                  task_info[query_key].append(instant_value)
+#
+#     write_to_file(target_path, metrics_info)
+    pprint(flink.get_all_checkpoints(job_id))
 
 def write_to_file(target_path, metrics_info):
     if os.path.exists(target_path):
