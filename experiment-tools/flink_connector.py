@@ -195,24 +195,8 @@ class Flink:
         response.raise_for_status()
         return response.json()
 
-    def get_all_checkpoints(self, jobid):
-        url = "{}/jobs/{}/checkpoints".format(
-            self._endpoint, jobid)
-        response = requests.get(url)
-        response.raise_for_status()
-        return response.json()
-
-    def get_checkpoint_detail(self, jobid, checkpointid):
-        url = "{}/jobs/{}/checkpoints/details/{}".format(
-            self._endpoint, jobid, checkpointid)
-        response = requests.get(url)
-        response.raise_for_status()
-        return response.json()
-
-
-
-def main(job_id, target_path, interval, repeat):
-    from pprint import pprint
+def main(job_id, interval, total_time):
+    repeat = int(total_time/interval)
     metrics_info = {}
     flink = Flink(endpoint="http://128.31.26.144:8081/")
 #     print("Endpoint is:", flink.get_endpoint())
@@ -241,32 +225,36 @@ def main(job_id, target_path, interval, repeat):
             node_value[query_key] = []
         metrics_info[node_key]  = node_value
 
-    for i in range(0, 1):
+    for i in range(0, repeat):
         time.sleep(interval)
         for task in job_details['vertices']:
             task_id = task['id']
             task_info = metrics_info[task_id]
-#             for query_key in all_queries_keys:
-#                  query_result = flink.get_task_metrics_details(job_id, task_id, query_key)
-#                  instant_value = query_result[0]["value"]
-#                  task_info[query_key].append(instant_value)
-#
-#     write_to_file(target_path, metrics_info)
-    pprint(flink.get_all_checkpoints(job_id))
+            for query_key in all_queries_keys:
+                 query_result = flink.get_task_metrics_details(job_id, task_id, query_key)
+                 instant_value = query_result[0]["value"]
+                 task_info[query_key].append(instant_value)
 
-def write_to_file(target_path, metrics_info):
+    target_dir = "./" + job_id
+    write_to_file(target_dir, metrics_info)
+
+
+def write_to_file(target_dir, metrics_info):
+    if not os.path.exists(target_dir):
+        os.makedirs(target_dir)
+    target_path = target_dir + "/metrics_record.json"
     if os.path.exists(target_path):
         os.remove(target_path)
 
     with open(target_path, 'w') as w:
         json.dump(metrics_info, w, indent=4, separators=(',', ':'))
 
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--job_id', type=str)
-    parser.add_argument('--target_path', type=str, default="./metrics_record.json")
     parser.add_argument('--interval', type=int, default=5)
-    parser.add_argument('--repeat', type=int, default=5)
+    parser.add_argument('--total_time', type=int, default=60)
     args = parser.parse_args()
 
-    main(args.job_id, args.target_path, args.interval, args.repeat)
+    main(args.job_id, args.interval, args.total_time)
