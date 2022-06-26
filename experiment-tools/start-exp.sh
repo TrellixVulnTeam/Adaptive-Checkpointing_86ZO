@@ -200,8 +200,7 @@ echo "$FETCH_TOTAL_TIME"
 sleep 10
 
 # experiment end. collectlog.sh(need modification), mv all experiment data to QueryName + timestamp""
-[ -d "$QUERY_ID" ] || mkdir "$QUERY_ID"
-
+cd "$FLINKROOT"/experiment-tools/ || (echo "cd fail" && exit 1)
 python3 flink_connector.py --job_id "$QUERY_ID" --interval "$FETCH_INTERVAL" --total_time "$FETCH_TOTAL_TIME" &
 python3 fetch_checkpoints_info.py --job_id "$QUERY_ID" --interval "$CHECKPOINT_FETCH_INTERVAL" --total_time "$FETCH_TOTAL_TIME" &
 

@@ -54,12 +54,12 @@ def main(job_id, interval, total_time):
         time.sleep(interval)
         current_all_checkpoints = flink.get_all_checkpoints(job_id)
         latest_checkpoint_id = current_all_checkpoints['latest']['completed']['id']
-
+        print("latest checkpoint id: ", latest_checkpoint_id)
         for i in range(last_record_checkpoint_id, latest_checkpoint_id):
             checkpoint_id = str(i)
             checkpoint_all_details = flink.get_checkpoint_detail(job_id, checkpoint_id)
             checkpoint_store_info = {}
-            if "error" in checkpoint_all_details:
+            if "errors" in checkpoint_all_details:
                 continue
             for fetch_key in checkpoint_fetch_keys:
                 checkpoint_store_info[fetch_key] = checkpoint_all_details[fetch_key]
