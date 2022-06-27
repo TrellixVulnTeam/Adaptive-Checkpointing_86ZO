@@ -10,8 +10,7 @@ PERSON_SOURCE="KafkaSourcePerson"
 TARGET_DIR="target"
 
 # for data collection
-FETCH_INTERVAL=10
-CHECKPOINT_FETCH_INTERVAL=5
+FETCH_INTERVAL=5
 FETCH_TOTAL_TIME=60
 
 # for exp-2
