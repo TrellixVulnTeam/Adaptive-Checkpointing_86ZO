@@ -202,5 +202,5 @@ cd "$FLINKROOT"/experiment-tools/ || (echo "cd fail" && exit 1)
 python3 flink_connector.py --job_id "$QUERY_ID" --interval "$FETCH_INTERVAL" --total_time "$FETCH_TOTAL_TIME"
 
 # clear all jobs and topics
-. clear_prev_jobs.sh
-. clear_kafka_topics.sh
+. "$bin"/clear_prev_jobs.sh
+. "$bin"/clear_kafka_topics.sh
