@@ -29,10 +29,12 @@ import org.apache.flink.api.connector.source.SourceReader;
 import org.apache.flink.api.connector.source.SourceReaderContext;
 import org.apache.flink.api.connector.source.SourceSplit;
 import org.apache.flink.configuration.Configuration;
+import org.apache.flink.configuration.MetricOptions;
 import org.apache.flink.core.io.InputStatus;
 import org.apache.flink.core.io.SimpleVersionedSerializer;
 import org.apache.flink.metrics.groups.SourceReaderMetricGroup;
 import org.apache.flink.runtime.io.AvailabilityProvider;
+import org.apache.flink.runtime.jobgraph.OperatorID;
 import org.apache.flink.runtime.metrics.groups.InternalSourceReaderMetricGroup;
 import org.apache.flink.runtime.operators.coordination.OperatorEvent;
 import org.apache.flink.runtime.operators.coordination.OperatorEventGateway;
@@ -49,7 +51,9 @@ import org.apache.flink.streaming.api.operators.source.TimestampsAndWatermarks;
 import org.apache.flink.streaming.api.operators.util.SimpleVersionedListState;
 import org.apache.flink.streaming.runtime.io.DataInputStatus;
 import org.apache.flink.streaming.runtime.io.PushingAsyncDataInput;
+import org.apache.flink.streaming.runtime.streamrecord.LatencyMarker;
 import org.apache.flink.streaming.runtime.streamrecord.StreamRecord;
+import org.apache.flink.streaming.runtime.tasks.ProcessingTimeCallback;
 import org.apache.flink.streaming.runtime.tasks.ProcessingTimeService;
 import org.apache.flink.streaming.runtime.tasks.StreamTask;
 import org.apache.flink.util.CollectionUtil;
@@ -60,6 +64,7 @@ import org.apache.flink.util.function.FunctionWithException;
 import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ScheduledFuture;
 
 import static org.apache.flink.util.Preconditions.checkNotNull;
 
@@ -327,6 +332,48 @@ public class SourceOperator<OUT, SplitT extends SourceSplit> extends AbstractStr
         super.close();
     }
 
+    private static class LatencyMarksEmitter<OUT> {
+        private final ScheduledFuture<?> latencyMarkTimer;
+
+        public LatencyMarksEmitter(
+                final ProcessingTimeService processingTimeService,
+                final DataOutput<OUT> output,
+                long latencyTrackingInterval,
+                final OperatorID operatorId,
+                final int subtaskIndex) {
+
+            latencyMarkTimer =
+                    processingTimeService.scheduleWithFixedDelay(
+                            new ProcessingTimeCallback() {
+                                @Override
+                                public void onProcessingTime(long timestamp) throws Exception {
+                                    try {
+                                        // ProcessingTimeService callbacks are executed under the
+                                        // checkpointing lock
+                                        output.emitLatencyMarker(
+                                                new LatencyMarker(
+                                                        processingTimeService
+                                                                .getCurrentProcessingTime(),
+                                                        operatorId,
+                                                        subtaskIndex));
+                                    } catch (Throwable t) {
+                                        // we catch the Throwables here so that we don't trigger the
+                                        // processing
+                                        // timer services async exception handler
+                                        LOG.warn("Error while emitting latency marker.", t);
+                                    }
+                                }
+                            },
+                            0L,
+                            latencyTrackingInterval);
+        }
+
+        public void close() {
+            latencyMarkTimer.cancel(true);
+        }
+    }
+
+
     @Override
     public DataInputStatus emitNext(DataOutput<OUT> output) throws Exception {
         // guarding an assumptions we currently make due to the fact that certain classes
@@ -345,6 +392,25 @@ public class SourceOperator<OUT, SplitT extends SourceSplit> extends AbstractStr
     }
 
     private DataInputStatus emitNextNotReading(DataOutput<OUT> output) throws Exception {
+        final long latencyTrackingInterval =
+                getExecutionConfig().isLatencyTrackingConfigured()
+                        ? getExecutionConfig().getLatencyTrackingInterval()
+                        : configuration.getLong(MetricOptions.LATENCY_INTERVAL);
+        LatencyMarksEmitter<OUT> latencyEmitter = null;
+        if (latencyTrackingInterval > 0) {
+            latencyEmitter =
+                    new LatencyMarksEmitter<>(
+                            getProcessingTimeService(),
+                            output,
+                            latencyTrackingInterval,
+                            this.getOperatorID(),
+                            getRuntimeContext().getIndexOfThisSubtask());
+        }
+
+        if (operatingMode == OperatingMode.DATA_FINISHED && latencyEmitter != null) {
+            latencyEmitter.close();
+        }
+
         switch (operatingMode) {
             case OUTPUT_NOT_INITIALIZED:
                 currentMainOutput = eventTimeLogic.createMainOutput(output);
