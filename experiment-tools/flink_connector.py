@@ -34,7 +34,7 @@ class Flink:
         https://nightlies.apache.org/flink/flink-docs-release-1.14/docs/ops/rest_api/#cluster
 
         '''        
-        url = "{}/taskmanagers/10.0.0.235:33307-153094/logs".format(self._endpoint)
+        url = "{}/taskmanagers/128.31.26.144:41985-a1561f/logs".format(self._endpoint)
         response = requests.get(url)
         response.raise_for_status()
         return response.json()
@@ -222,6 +222,14 @@ def main(job_id, interval, total_time):
     job_plan = flink.get_job_plan(job_id)
     nodes_info = job_plan['plan']['nodes']
 
+#     print(flink.get_job_details(job_id))
+#     print("=======================")
+#     print(flink.get_job_plan(job_id))
+#     print("=========================")
+#     print(flink.get_task_status(job_id, "6108a2b01f8518cedda14db837358577"))
+#     print("=======================")
+#     print(flink.get_job_agg_metrics())
+#     print(flink.get_job_agg_metrics())
     number_bytes_in_per_second_query = ""
     all_queries_keys = ["0.numBytesInPerSecond", "0.numRecordsInPerSecond"]
     checkpoint_fetch_keys = ["end_to_end_duration", "state_size"]
