@@ -234,8 +234,18 @@ def main(job_id, interval, total_time):
             node_value[query_key] = []
         metrics_info[node_key]  = node_value
 
+    fail_count = 0
     for i in range(0, repeat):
         time.sleep(interval)
+        jobs_details = flink.list_jobs()
+        jobs_lists_status = jobs_details['jobs']
+        for job_status in jobs_lists_status:
+            if job_status['id'] == job_id:
+                status = job_status['status']
+                break
+        if status == "CANCELED" or status == "FAILED":
+            break
+
         for task in job_details['vertices']:
             task_id = task['id']
             task_info = metrics_info[task_id]
@@ -246,7 +256,6 @@ def main(job_id, interval, total_time):
 
         current_all_checkpoints = flink.get_all_checkpoints(job_id)
         latest_checkpoint_id = current_all_checkpoints['latest']['completed']['id']
-        print("latest checkpoint id: ", latest_checkpoint_id)
         for i in range(last_record_checkpoint_id, latest_checkpoint_id):
             checkpoint_id = str(i)
             checkpoint_all_details = flink.get_checkpoint_detail(job_id, checkpoint_id)
