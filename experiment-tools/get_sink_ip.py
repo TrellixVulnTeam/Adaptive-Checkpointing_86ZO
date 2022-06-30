@@ -42,19 +42,38 @@ class Flink:
         response.raise_for_status()
         return response.json()
 
+def trancate_ip(taskmanager_id):
+    return taskmanager_id.split(":")[0]
+
+
 def main(job_id):
     # first get task id by job plan (description = Latency Sink)
+    flink = Flink(endpoint="http://128.31.26.144:8081/")
+    job_plan = flink.get_job_plan(job_id)
+    job_all_nodes = job_plan['plan']['nodes']
+    for node in job_all_nodes:
+        if node['description'] == 'Latency Sink':
+            sink_task_id = node['id']
+            break
 
     # second get task status using task id
+    sink_task_status = flink.get_task_status(job_id, sink_task_id)
+    sink_subtasks = sink_task_status['subtasks']
 
     # third get taskmanager-id
-
-    # truncate taskmanager-id to get the ip-address
-
+    ip_list = []
+    for subtask in sink_subtasks:
+        taskmanager_id = subtask['taskmanager-id']
+        # truncate taskmanager-id to get the ip-address
+        ip = trancate_ip(taskmanager_id)
+        if ip not in ip_list:
+            ip_list.append(ip)
     # return ip-address to shell for scp log files
+    print(ip_list)
+    return ip_list
 
 
-if __name__ = "__main__":
+if __name__ == "__main__":
     job_id = sys.argv[1]
     main(job_id)
 

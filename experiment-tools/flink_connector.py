@@ -224,12 +224,11 @@ def main(job_id, interval, total_time):
 
 #     print(flink.get_job_details(job_id))
 #     print("=======================")
-#     print(flink.get_job_plan(job_id))
-#     print("=========================")
-#     print(flink.get_task_status(job_id, "6108a2b01f8518cedda14db837358577"))
-#     print("=======================")
-#     print(flink.get_job_agg_metrics())
-#     print(flink.get_job_agg_metrics())
+    print(flink.get_job_plan(job_id))
+    print("=========================")
+    print(flink.get_task_status(job_id, '6108a2b01f8518cedda14db837358577'))
+    print("=======================")
+#     print(flink.get_cluster())
     number_bytes_in_per_second_query = ""
     all_queries_keys = ["0.numBytesInPerSecond", "0.numRecordsInPerSecond"]
     checkpoint_fetch_keys = ["end_to_end_duration", "state_size"]

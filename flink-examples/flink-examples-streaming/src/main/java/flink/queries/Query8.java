@@ -163,7 +163,9 @@ public class Query8 {
 
         GenericTypeInfo<Object> objectTypeInfo = new GenericTypeInfo<>(Object.class);
         joined.transform("DummyLatencySink", objectTypeInfo, new DummyLatencyCountingSink<>(logger))
-                .setParallelism(params.getInt("p-window", 1)); // .slotSharingGroup("sink");
+                .setParallelism(params.getInt("p-window", 1))
+                .name("Latency Sink")
+                .uid("Latency-Sink");; // .slotSharingGroup("sink");
 
         // execute program
         env.execute("Nexmark Query8");

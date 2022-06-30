@@ -188,8 +188,10 @@ public class Query3Stateful {
         // .slotSharingGroup("join");
 
         GenericTypeInfo<Object> objectTypeInfo = new GenericTypeInfo<>(Object.class);
-        joined.transform("Sink", objectTypeInfo, new DummyLatencyCountingSink<>(logger))
-                .setParallelism(params.getInt("p-join", 1));
+        joined.transform("DummyLatencySink", objectTypeInfo, new DummyLatencyCountingSink<>(logger))
+                .setParallelism(params.getInt("p-join", 1))
+                .name("Latency Sink")
+                .uid("Latency-Sink");
         // .slotSharingGroup("sink");
 
         // execute program
