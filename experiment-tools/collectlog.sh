@@ -16,7 +16,7 @@ cd "$FLINKROOT"/experiment-tools/"$QUERY_ID" || (echo "cd to job_id dir failed" 
 #  iplist+=("$line")
 #done < workers
 
-for ip in "${iplist[@]}"
+for ip in $iplist
 do
   printf '%s\n' '-----------------------------------------------------'
   echo $ip
