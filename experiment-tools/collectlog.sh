@@ -2,8 +2,9 @@
 export FLINKROOT=$(cd ..; pwd)
 echo $FLINKROOT
 
-iplist=$(python3 get_sink_ip.py)\
 QUERY_ID=$1
+
+iplist=$(python3 get_sink_ip.py "$QUERY_ID")\
 
 cd "$FLINKROOT"/experiment-tools/"$QUERY_ID" || (echo "cd to job_id dir failed" && exit 1)
 
@@ -18,7 +19,6 @@ cd "$FLINKROOT"/experiment-tools/"$QUERY_ID" || (echo "cd to job_id dir failed" 
 
 for ip in $iplist
 do
-  printf '%s\n' '-----------------------------------------------------'
   echo $ip
   ifname="${ip//\./\_}"
   echo $ifname
