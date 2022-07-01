@@ -23,6 +23,6 @@ do
   ifname="${ip//\./\_}"
   echo $ifname
   mkdir "$FLINKROOT"/experiment-tools/"$QUERY_ID"/"$ifname"
-  scp "$ip":"$FLINKROOT"/flink-dist/target/flink-1.14.0-bin/flink-1.14.0/log/*.log "$FLINKROOT"/scripts/flinklogs_"$timestamp"/"$ifname"/
+  scp "$ip":"$FLINKROOT"/flink-dist/target/flink-1.14.0-bin/flink-1.14.0/log/*.log "$FLINKROOT"/experiment-tools/"$QUERY_ID"/"$ifname"/
 done
 
