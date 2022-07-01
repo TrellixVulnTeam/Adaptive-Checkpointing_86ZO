@@ -69,11 +69,14 @@ def main(job_id):
         if ip not in ip_list:
             ip_list.append(ip)
     # return ip-address to shell for scp log files
-    print(ip_list)
     return ip_list
 
 
 if __name__ == "__main__":
     job_id = sys.argv[1]
-    main(job_id)
+    return_list = main(job_id)
+    return_str = ''
+    for item in return_list:
+        return_str += str(item)+' '
+    print(return_str)
 
