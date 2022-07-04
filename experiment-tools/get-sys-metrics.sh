@@ -1,14 +1,20 @@
 #!/bin/bash
-FETCH_TOTAL_TIME=$1
-METRICS_FETCH_INTERVAL=$2
+QUERY_ID=$1
+FETCH_TOTAL_TIME=$2
+METRICS_FETCH_INTERVAL=$3
 REPEAT=`expr $FETCH_TOTAL_TIME / $METRICS_FETCH_INTERVAL`
 count=1
 
 var=$(jps | grep TaskManagerRunner)
 array=($var)
 pid=${array[0]}
-mkdir sys-metrics
-cd sys-metrics || (echo cd fails && exit 1)
+
+if [ -d "$QUERY_ID"/sys-metrics ]
+  then rm -rf "$QUERY_ID"/sys-metrics
+fi
+mkdir "$QUERY_ID"/sys-metrics
+
+cd "$QUERY_ID"/sys-metrics || (echo cd fails && exit 1)
 echo $pid
 while(( $count <= $REPEAT))
 do

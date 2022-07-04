@@ -9,20 +9,24 @@ echo "$QUERY_ID"
 echo "$FETCH_TOTAL_TIME"
 echo "$METRCIS_FETCH_INTERVAL"
 
-echo "========= connecting flink nodes for metrics ==========="
-ssh flinknode-2 'bash -s' < get-sys-metrics.sh "$FETCH_TOTAL_TIME" "$METRCIS_FETCH_INTERVAL" &
-ssh flinknode-3 'bash -s' < get-sys-metrics.sh "$FETCH_TOTAL_TIME" "$METRCIS_FETCH_INTERVAL" &
-wait
-
-echo "========= scp metrics files from flink nodes ==========="
 cd "$FLINKROOT"/flink-dist/target/flink-1.14.0-bin/flink-1.14.0/conf || (echo cd fails && exit 1)
 iplist=()
 while IFS= read -r line; do
   ip="$line"
-  iplist+=("$line")
+  iplist+=("$ip")
 done < workers
 
-for ip in $iplist
+echo "========= connecting flink nodes for metrics ==========="
+for ip in "${iplist[@]}"
 do
-  scp "$ip":sys-metrics "$FLINKROOT"/experiment-tools/"$QUERY_ID"/
+  ssh "$ip" 'bash -s' < get-sys-metrics.sh "$QUERY_ID" "$FETCH_TOTAL_TIME" "$METRCIS_FETCH_INTERVAL" &
 done
+wait
+
+echo "========= scp metrics files from flink nodes ==========="
+
+for ip in "${iplist[@]}"
+do
+  scp -r "$ip":"$QUERY_ID"/sys-metrics "$FLINKROOT"/experiment-tools/"$QUERY_ID"/"$ip"/sys-metrics
+done
+cd "$FLINKROOT"/experiment-tools || (echo cd fails && exit 1)
