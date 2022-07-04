@@ -199,13 +199,16 @@ echo "$FETCH_TOTAL_TIME"
 
 # experiment end. collectlog.sh(need modification), mv all experiment data to QueryName + timestamp""
 cd "$FLINKROOT"/experiment-tools/ || (echo "cd fail" && exit 1)
-python3 flink_connector.py --job_id "$QUERY_ID" --interval "$FETCH_INTERVAL" --total_time "$FETCH_TOTAL_TIME"
+python3 flink_connector.py --job_id "$QUERY_ID" --interval "$FETCH_INTERVAL" --total_time "$FETCH_TOTAL_TIME" &
 
 # collect log
 echo "========== start collecting logs =========="
 . "$bin"/collectlog.sh "$QUERY_ID"
 
+
 # clear all jobs and topics
+echo "=========== start clearing jobs and kafka topics ============="
 cd "$FLINKROOT"/experiment-tools/ || (echo "cd fail" && exit 1)
 . clear-prev-jobs.sh
+cd "$FLINKROOT"/experiment-tools/ || (echo "cd fail" && exit 1)
 . clear-kafka-topics.sh
