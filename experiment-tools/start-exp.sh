@@ -197,14 +197,20 @@ echo "$QUERY_ID"
 echo "$FETCH_INTERVAL"
 echo "$FETCH_TOTAL_TIME"
 
-# experiment end. collectlog.sh(need modification), mv all experiment data to QueryName + timestamp""
+echo "========= start collecting metrics ========="
 cd "$FLINKROOT"/experiment-tools/ || (echo "cd fail" && exit 1)
 python3 flink_connector.py --job_id "$QUERY_ID" --interval "$FETCH_INTERVAL" --total_time "$FETCH_TOTAL_TIME" &
+# collect system metrics
+. connect-for-metrics.sh "$QUERY_ID" "$FETCH_TOTAL_TIME" "$METRICS_FETCH_INTERVAL" &
+wait
 
 # collect log
 echo "========== start collecting logs =========="
 . "$bin"/collectlog.sh "$QUERY_ID"
 
+# draw result
+echo "========= start drawing results ============"
+# todo: scripts to draw metrics
 
 # clear all jobs and topics
 echo "=========== start clearing jobs and kafka topics ============="
