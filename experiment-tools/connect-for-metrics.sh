@@ -16,6 +16,7 @@ while IFS= read -r line; do
   iplist+=("$ip")
 done < workers
 
+cd "$FLINKROOT"/experiment-tools || (echo cd flink root fails && exit 1)
 echo "========= connecting flink nodes for metrics ==========="
 for ip in "${iplist[@]}"
 do
@@ -24,9 +25,13 @@ done
 wait
 
 echo "========= scp metrics files from flink nodes ==========="
-
+cd "$FLINKROOT"/experiment-tools || (echo cd flink root fails && exit 1)
+if [ -d "$QUERY_ID"/sys-metrics ]
+  then rm -rf "$QUERY_ID"/sys-metrics
+fi
+mkdir "$QUERY_ID"/sys-metrics
 for ip in "${iplist[@]}"
 do
-  scp -r "$ip":"$QUERY_ID"/sys-metrics "$FLINKROOT"/experiment-tools/"$QUERY_ID"/"$ip"/sys-metrics
+  scp -r "$ip":"$QUERY_ID"/ "$FLINKROOT"/experiment-tools/"$QUERY_ID"/sys-metrics/"$ip"
 done
-cd "$FLINKROOT"/experiment-tools || (echo cd fails && exit 1)
+
