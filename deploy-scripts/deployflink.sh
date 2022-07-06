@@ -1,8 +1,8 @@
 #!/bin/bash
 export NODE_ROOT=$(cd ../..; pwd)
-echo $NODE_ROOT
+echo "NODE_ROOT: $NODE_ROOT"
 export FLINKROOT=$(cd ..; pwd)
-echo $FLINKROOT
+echo "FLINKROOT: $FLINKROOT"
 
 localip=$(hostname -I)
 # localip=${$localip//\n/}
@@ -38,7 +38,7 @@ for ip in "${iplist[@]}"
 do
   if [[ $ip != $localip ]]; then
     printf '%s\n' '-----------------------------------------------------'
-    echo $ip
+    echo "deploying on $ip"
     ssh "$ip" "rm -rf "$FLINKROOT""
     ssh "$ip" "mkdir "$FLINKROOT""
     ssh "$ip" "mkdir "$FLINKROOT"/flinkstate/"

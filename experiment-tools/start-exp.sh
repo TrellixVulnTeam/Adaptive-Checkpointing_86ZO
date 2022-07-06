@@ -1,7 +1,8 @@
 #!/bin/bash
 export HADOOP_CLASSPATH="/usr/local/hadoop/etc/hadoop"
+echo "HADOOP_CLASSPATH: $HADOOP_CLASSPATH"
 export FLINKROOT=$(cd ..; pwd)
-echo $FLINKROOT
+echo "FLINKROOT: $FLINKROOT"
 USAGE="Usage: start-exp.sh (1/3/5/8)"
 KAFKAIP="128.31.25.127"
 KAFKA="$KAFKAIP:9092"
@@ -9,7 +10,7 @@ JOBID_REGEX='[0-9a-fA-F]\{32\}'
 
 bin=`dirname "$0"`
 bin=`cd "$bin"; pwd`
-echo $bin
+echo "bin: $bin"
 
 # clean all previous jobs
 . "$bin"/clear-prev-jobs.sh
@@ -27,6 +28,7 @@ ssh "ubuntu@$KAFKAIP" "cd kafka/ && ./clear-kafka-topics.sh $KAFKA"
 # source config
 . "$bin"/config.sh
 . "$bin"/argsconfig.sh
+echo "CHECKPOINT_DIR: $CHECKPOINT_DIR"
 
 QUERY=$1
 QUERY_TO_RUN=""
@@ -51,10 +53,10 @@ case $QUERY in
          exit 1
      ;;
 esac
-echo  $QUERY_TO_RUN
+echo  "RUN QUERY: $QUERY_TO_RUN"
 
 # submit Query JOB
-cd "$FLINKROOT"/flink-dist/target/flink-1.14.0-bin/flink-1.14.0/ || (echo cd fails && exit 1)
+cd "$FLINKROOT"/flink-dist/target/flink-1.14.0-bin/flink-1.14.0/ || (echo "cd fails" && exit 1)
 
 # Jobid storage
 TEMP_JOBID_STORAGE="$bin"/getJobid
@@ -68,13 +70,13 @@ rm $TEMP_PERSON_SOURCE_ID_STORAGE
 QUERY_ID=""
 
 if [ $withTwoSource = true ]; then
-    echo 2 Source
+    echo "USE 2 SOURCE"
 
     Queryjar="$bin"/"$TARGET_DIR"/"$QUERY_TO_RUN.jar"
     auctionSjar="$bin"/"$TARGET_DIR"/"$AUCTION_SOURCE.jar"
     personSjar="$bin"/"$TARGET_DIR"/"$PERSON_SOURCE.jar"
     if [ ! -f  "$Queryjar" ] || [ ! -f  "$auctionSjar" ] || [ ! -f  "$personSjar" ] ; then
-        echo "not enough jars"
+        echo "Not Enough Jars"
         exit 1
     fi
 
@@ -90,7 +92,7 @@ if [ $withTwoSource = true ]; then
     printf 'kafkaip: person topic_name: %s\n' "$PERSON_TOPIC"
     ssh "ubuntu@$KAFKAIP" "cd kafka/ && bin/kafka-topics.sh --create --topic "$PERSON_TOPIC" --bootstrap-server "$KAFKA""
 
-    sleep 5
+    sleep 2
     # run query
     ( ./bin/flink run --detached "$Queryjar" \
      --exchange-rate "$EXCHANGE_RAGE" \
@@ -147,7 +149,7 @@ else
     Queryjar="$bin"/"$TARGET_DIR"/"$QUERY_TO_RUN.jar"
     bidSjar="$bin"/"$TARGET_DIR"/"$BID_SOURCE.jar"
     if [ ! -f  "$Queryjar" ] || [ ! -f  "$bidSjar" ] ; then
-        echo "not enough jars"
+        echo "Not Enough Jars"
         exit 1
     fi
 
@@ -157,7 +159,7 @@ else
     printf 'kafkaip: bid topic_name: %s\n' "$TOPICNAME"
     ssh "ubuntu@$KAFKAIP" "cd kafka/ && bin/kafka-topics.sh --create --topic "$TOPICNAME" --bootstrap-server "$KAFKA""
 
-    sleep 5
+    sleep 2
     # run query, & guaqi, \ huanhang, pid kill, chmod +x file
     ( ./bin/flink run --detached "$Queryjar" \
     --exchange-rate "$EXCHANGE_RAGE" \
@@ -194,14 +196,14 @@ else
 fi
 
 # start a timer to collect data here
-echo "$QUERY_ID"
-echo "$FETCH_INTERVAL"
-echo "$FETCH_TOTAL_TIME"
+echo "QUERY_ID: $QUERY_ID"
+echo "FETCH_INTERVAL: $FETCH_INTERVAL"
+echo "FETCH_TOTAL_TIME: $FETCH_TOTAL_TIME"
 
 # experiment end. collectlog.sh(need modification), mv all experiment data to QueryName + timestamp""
-cd "$FLINKROOT"/experiment-tools/ || (echo "cd fail" && exit 1)
-python3 flink_connector.py --job_id "$QUERY_ID" --interval "$FETCH_INTERVAL" --total_time "$FETCH_TOTAL_TIME"
+# cd "$FLINKROOT"/experiment-tools/ || (echo "cd fail" && exit 1)
+# python3 flink_connector.py --job_id "$QUERY_ID" --interval "$FETCH_INTERVAL" --total_time "$FETCH_TOTAL_TIME"
 
 # clear all jobs and topics
-. "$bin"/clear-prev-jobs.sh
-. "$bin"/clear-kafka-topics.sh
+# . "$bin"/clear-prev-jobs.sh
+# . "$bin"/clear-kafka-topics.sh
