@@ -11,7 +11,7 @@
 
 # Connect To Kafka
 1. change listeners in server.properties to ensure port 9092 can be access by Flink application
-2. use screen to run kafka
+2. use screen to run kafka and zookeeper
 
 # Connect To Hadoop
 
