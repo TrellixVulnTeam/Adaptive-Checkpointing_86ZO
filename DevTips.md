@@ -14,4 +14,11 @@
 2. use screen to run kafka and zookeeper
 
 # Connect To Hadoop
-
+1. add 2 env variables (HADOOP_CLASSPATH, HADOOP_CONF_DIR) to hadoop-env.sh. Accroding to https://nightlies.apache.org/flink/flink-docs-release-1.11/ops/deployment/hadoop.html#providing-hadoop-classes,
+   Flink will use the environment variable HADOOP_CLASSPATH to augment the classpath that is used when starting Flink components . Most Hadoop distributions and cloud environments will not set this 
+   variable by default so if the Hadoop classpath should be picked up by Flink the environment variable must be exported on all machines that are running Flink components explicitly.
+   Another reason may be environment isolation cased by running the shell scripts.
+2. add flink-shaded-hadoop-3-uber.jar to build-target/lib fro resolving dependencies conflicts. refer to
+   https://nightlies.apache.org/flink/flink-docs-release-1.11/ops/deployment/hadoop.html#hadoop-integration.
+3. change the IP in core-sites.xml to make the datanode connect to the namenode.
+4. use http:<ip of the hadoop vm>:9870 to access the hadoop UI to debug and check status.
