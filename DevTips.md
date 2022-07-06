@@ -1,22 +1,17 @@
-# Tips For develop this Project
-
-1. when you try to build, run 'mvn clean package -DskipTests -X', 
-maven checkstyle is opened, so the build process fail may related 
-to style problem, find with -x and fix it! run 'mvn spotless:apply'
-
+# Build Problem
+1. when you try to build, run 'mvn clean package -DskipTests -X', maven checkstyle is opened, so the build process fail may relate to style problem, find with -x and fix it! run 'mvn spotless:apply'
 2. Never run 'mvn clean package'. It will cause some issue with test. 
-3. If 'xxx module couldn't be found' appears when you are running an example. Try to rebuild the whole module / folder
+3. For "Couldn't find/download xxxplugin" error, just rebuild it
+4. If 'xxx module couldn't be found' appears when you are running an example. Try to rebuild the whole module / folder 
+5. Build the whole Flink to ensure that you use the imported package of Custom Flink. Build example separately will use flink-1.14.0.
 
-4. modify and run test files in every package, for small part of code modification, for example:
-   flink-simplified-checkpoint/flink-runtime/**src/test**/java/org/apache/flink/runtime/jobmaster/JobMassterTest.java
+# Test Source Code
+1. modify and run test files in every package, for small part of code modification, for example: flink-simplified-checkpoint/flink-runtime/**src/test**/java/org/apache/flink/runtime/jobmaster/JobMasterTest.java
+2. Use flink-example/, run main() in the application which uses Flink API 
 
-5. before using  "testCheckpointPrecedesSavepointRecovery" test in "jobMasterTest.java" to test Adapter and
-JobMaster Gateway (run "mvn clean package" first, Otherwise, an error message is displayed 
-indicating that the "rpcService" cannot be established.)
+# Connect To Kafka
+1. change listeners in server.properties to ensure port 9092 can be access by Flink application
+2. use screen to run kafka
 
-6. The best way to learn how to use the API is to look at Example instead of searching for documentation on the website
-
-7. Build the whole Flink to ensure that you use the imported package of Custom Flink. Build example separately will use flink-1.14.0.
-
-8. For "Couldn't find/download xxxplugin" error, just rebuild it
+# Connect To Hadoop
 
