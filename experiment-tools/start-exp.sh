@@ -1,4 +1,5 @@
 #!/bin/bash
+export HADOOP_CLASSPATH="/usr/local/hadoop/etc/hadoop"
 export FLINKROOT=$(cd ..; pwd)
 echo $FLINKROOT
 USAGE="Usage: start-exp.sh (1/3/5/8)"
