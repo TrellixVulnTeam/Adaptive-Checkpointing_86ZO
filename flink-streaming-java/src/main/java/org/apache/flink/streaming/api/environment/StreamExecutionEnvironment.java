@@ -501,6 +501,60 @@ public class StreamExecutionEnvironment {
         return this;
     }
 
+    public StreamExecutionEnvironment setCheckpointAdapterIncThreshold(double incThreshold) {
+        checkpointAdapterConfig.setIncThreshold(incThreshold);
+        return this;
+    }
+
+    public StreamExecutionEnvironment setCheckpointAdapterDecThreshold(double decThreshold) {
+        checkpointAdapterConfig.setDecThreshold(decThreshold);
+        return this;
+    }
+
+    public StreamExecutionEnvironment setCheckpointAdapterTaskTimerInterval(long taskTimerInterval) {
+        checkpointAdapterConfig.setTaskTimerInterval(taskTimerInterval);
+        return this;
+    }
+
+    public StreamExecutionEnvironment setCheckpointAdapterEMA(double ema) {
+        checkpointAdapterConfig.setEMA(ema);
+        return this;
+    }
+
+    public StreamExecutionEnvironment setCheckpointAdapterCounterThreshold(int counterThreshold) {
+        checkpointAdapterConfig.setCounterThreshold(counterThreshold);
+        return this;
+    }
+
+    public StreamExecutionEnvironment setCheckpointAdapterTaskWindowSize(int taskWindowSize) {
+        checkpointAdapterConfig.setTaskWindowSize(taskWindowSize);
+        return this;
+    }
+
+    public double getCheckpointAdapterIncThreshold() {
+        return checkpointAdapterConfig.getIncThreshold();
+    }
+
+    public double getCheckpointAdapterDecThreshold() {
+        return checkpointAdapterConfig.getDecThreshold();
+    }
+
+    public long getCheckpointAdapterTaskTimerInterval() {
+        return checkpointAdapterConfig.getTaskTimerInterval();
+    }
+
+    public double getCheckpointAdapterEMA() {
+        return checkpointAdapterConfig.getEMA();
+    }
+
+    public int getCheckpointAdapterCounterThreshold() {
+        return checkpointAdapterConfig.getCounterThreshold();
+    }
+
+    public int getCheckpointAdapterTaskWindowSize() {
+        return checkpointAdapterConfig.getTaskWindowSize();
+    }
+
     public long getCheckpointAdapterRecoveryTime() {
         return checkpointAdapterConfig.getRecoveryTime();
     }

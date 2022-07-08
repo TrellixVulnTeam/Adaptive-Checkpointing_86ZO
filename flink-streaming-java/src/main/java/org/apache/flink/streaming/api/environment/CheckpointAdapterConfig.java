@@ -13,7 +13,7 @@ public class CheckpointAdapterConfig {
      * The interval between data submissions of taskExecutor, The default timing is -1 , which means
      * commit once after completing a checkpoint.
      */
-    @Deprecated private long metricsInterval = -1;
+    private long taskTimerInterval = 1000;
     /**
      * A new period calculated from the metrics outside this range triggers a period change
      * operation default value is 30%.
@@ -21,11 +21,41 @@ public class CheckpointAdapterConfig {
     private double allowRange = 0.3;
     /** How often the checkpoint adapter checks for updates, operation default value is 1000ms. */
     private long checkInterval = 1000;
-    /**
-     * If this value is true. You must both set allowRange and changePeriod Changes are triggered
-     * only if the data stays at a level (allowRange) for a period of time (changePeriod).
-     */
-    @Deprecated private boolean isDebounceMode = false;
+
+    /** for metrics submission **/
+    private double incThreshold = 0.25;
+
+    private double decThreshold = 0.25;
+
+    private double EMA = 0.8;
+
+    private int counterThreshold = 3;
+
+    private int taskWindowSize = 4;
+
+    public void setCounterThreshold(int counterThreshold) {
+        this.counterThreshold = counterThreshold;
+    }
+
+    public void setTaskWindowSize(int taskWindowSize) {
+        this.taskWindowSize = taskWindowSize;
+    }
+
+    public int getCounterThreshold() {
+        return counterThreshold;
+    }
+
+    public int getTaskWindowSize() {
+        return taskWindowSize;
+    }
+
+    public void setEMA(double EMA) {
+        this.EMA = EMA;
+    }
+
+    public double getEMA() {
+        return EMA;
+    }
 
     public void setAllowRange(double allowRange) {
         this.allowRange = allowRange;
@@ -35,9 +65,12 @@ public class CheckpointAdapterConfig {
         this.checkInterval = checkInterval;
     }
 
-    @Deprecated
-    public void setDebounceMode(boolean debounceMode) {
-        isDebounceMode = debounceMode;
+    public void setIncThreshold(double incThreshold) {
+        this.incThreshold = incThreshold;
+    }
+
+    public void setDecThreshold(double decThreshold) {
+        this.decThreshold = decThreshold;
     }
 
     public double getAllowRange() {
@@ -48,17 +81,20 @@ public class CheckpointAdapterConfig {
         return checkInterval;
     }
 
-    public boolean isDebounceMode() {
-        return isDebounceMode;
+    public double getIncThreshold() {
+        return incThreshold;
     }
 
-    @Deprecated
-    public void setMetricsInterval(long metricsInterval) {
-        this.metricsInterval = metricsInterval;
+    public double getDecThreshold() {
+        return decThreshold;
     }
 
-    public long getMetricsInterval() {
-        return metricsInterval;
+    public void setTaskTimerInterval(long taskTimerInterval) {
+        this.taskTimerInterval = taskTimerInterval;
+    }
+
+    public long getTaskTimerInterval() {
+        return taskTimerInterval;
     }
 
     public boolean isCheckpointAdapterEnabled() {
@@ -75,8 +111,12 @@ public class CheckpointAdapterConfig {
         this.recoveryTime = config.recoveryTime;
         this.allowRange = config.allowRange;
         this.checkInterval = config.checkInterval;
-        this.metricsInterval = config.metricsInterval;
-        this.isDebounceMode = config.isDebounceMode;
+        this.taskTimerInterval = config.taskTimerInterval;
+        this.incThreshold = config.incThreshold;
+        this.decThreshold = config.decThreshold;
+        this.EMA = config.EMA;
+        this.counterThreshold = config.counterThreshold;
+        this.taskWindowSize = config.taskWindowSize;
     }
 
     public CheckpointAdapterConfig() {}
