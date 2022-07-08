@@ -1220,14 +1220,17 @@ public class StreamingJobGraphGenerator {
 
     private void configureCheckpointAdapter() {
         CheckpointAdapterConfig cfg = streamGraph.getCheckpointAdapterConfig();
-        long recoveryTime = cfg.getRecoveryTime();
-        long metricsInterval = cfg.getMetricsInterval();
-        long checkInterval = cfg.getCheckInterval();
-        double allowRange = cfg.getAllowRange();
-        boolean isDebounceMode = cfg.isDebounceMode();
         JobCheckpointAdapterConfiguration checkpointAdapterConfiguration =
                 new JobCheckpointAdapterConfiguration(
-                        recoveryTime, metricsInterval, allowRange, checkInterval, isDebounceMode);
+                        cfg.getRecoveryTime(),
+                        cfg.getAllowRange(),
+                        cfg.getCheckInterval(),
+                        cfg.getIncThreshold(),
+                        cfg.getDecThreshold(),
+                        cfg.getTaskTimerInterval(),
+                        cfg.getEMA(),
+                        cfg.getCounterThreshold(),
+                        cfg.getTaskWindowSize());
         jobGraph.setCheckpointAdapterConfig(checkpointAdapterConfiguration);
     }
 

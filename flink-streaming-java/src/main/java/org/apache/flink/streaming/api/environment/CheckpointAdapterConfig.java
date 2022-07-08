@@ -9,16 +9,13 @@ import static org.apache.flink.util.Preconditions.checkNotNull;
 public class CheckpointAdapterConfig {
     /** the same as user tolerant time. */
     private long recoveryTime = -1;
-    /**
-     * The interval between data submissions of taskExecutor, The default timing is -1 , which means
-     * commit once after completing a checkpoint.
-     */
-    private long taskTimerInterval = 1000;
+
     /**
      * A new period calculated from the metrics outside this range triggers a period change
      * operation default value is 30%.
      */
     private double allowRange = 0.3;
+
     /** How often the checkpoint adapter checks for updates, operation default value is 1000ms. */
     private long checkInterval = 1000;
 
@@ -26,6 +23,8 @@ public class CheckpointAdapterConfig {
     private double incThreshold = 0.25;
 
     private double decThreshold = 0.25;
+
+    private long taskTimerInterval = 1000;
 
     private double EMA = 0.8;
 

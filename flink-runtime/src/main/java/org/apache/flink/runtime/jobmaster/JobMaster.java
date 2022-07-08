@@ -504,10 +504,8 @@ public class JobMaster extends PermanentlyFencedRpcEndpoint<JobMasterId>
     }
 
     @Override
-    public CompletableFuture<Tuple2<Boolean, Long>> requestMetricsInterval() {
-        long metricsInterval = this.jobGraph.getCkpAdapterConfiguration().getMetricsInterval();
-        return CompletableFuture.completedFuture(
-                new Tuple2<>(isCheckpointAdapterEnable, metricsInterval));
+    public CompletableFuture<JobCheckpointAdapterConfiguration> requestMetricsInterval() {
+        return CompletableFuture.completedFuture( this.jobGraph.getCkpAdapterConfiguration());
     }
 
     @Override
