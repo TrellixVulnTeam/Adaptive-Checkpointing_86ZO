@@ -20,8 +20,7 @@ cd "$FLINKROOT"/experiment-tools/"$QUERY_ID" || (echo "cd to job_id dir failed" 
 for ip in $iplist
 do
   echo $ip
-  ifname="${ip//\./\_}"
-  echo $ifname
+  ifname="log"
   mkdir "$FLINKROOT"/experiment-tools/"$QUERY_ID"/"$ifname"
   scp "$ip":"$FLINKROOT"/flink-dist/target/flink-1.14.0-bin/flink-1.14.0/log/*.log "$FLINKROOT"/experiment-tools/"$QUERY_ID"/"$ifname"/
 done
