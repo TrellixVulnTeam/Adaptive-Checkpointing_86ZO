@@ -63,10 +63,10 @@ TEMP_JOBID_STORAGE="$bin"/getJobid
 TEMP_BID_SOURCE_ID_STORAGE="$bin"/getBidSourceid
 TEMP_AUCTION_SOURCE_ID_STORAGE="$bin"/getAuctionSourceid
 TEMP_PERSON_SOURCE_ID_STORAGE="$bin"/getPersonSourceid
-rm $TEMP_JOBID_STORAGE
-rm $TEMP_BID_SOURCE_ID_STORAGE
-rm $TEMP_AUCTION_SOURCE_ID_STORAGE
-rm $TEMP_PERSON_SOURCE_ID_STORAGE
+rm "$TEMP_JOBID_STORAGE"
+rm "$TEMP_BID_SOURCE_ID_STORAGE"
+rm "$TEMP_AUCTION_SOURCE_ID_STORAGE"
+rm "$TEMP_PERSON_SOURCE_ID_STORAGE"
 QUERY_ID=""
 
 if [ $withTwoSource = true ]; then
@@ -98,6 +98,17 @@ if [ $withTwoSource = true ]; then
      --exchange-rate "$EXCHANGE_RAGE" \
      --checkpoint-dir "$CHECKPOINT_DIR" \
      --incremental-checkpoints "$INCREMENTAL_CHECKPOINTS" \
+     --ckp-interval "$CHECKPOINT_INTERVAL" \
+     --ckp-adapter "$CKP_ADAPTER_RECOVERY" \
+     --ckp-adapter-allow-range "$CKP_ADAPTER_ALLOW_RANGE" \
+     --ckp-adapter-check-interval "$CKP_ADAPTER_CHECK_INTERVAL" \
+     --ckp-adapter-inc-threshold "$CKP_ADAPTER_INC" \
+     --ckp-adapter-dec-threshold "$CKP_ADAPTER_DEC" \
+     --ckp-adapter-task-timer-interval "$CKP_ADAPTER_TASK_TIMER_INTERVAL" \
+     --ckp-adapter-ema "$CKP_ADAPTER_EMA" \
+     --ckp-adapter-counter-threshold "$CKP_ADAPTER_COUNTER" \
+     --ckp-adapter-window "$CKP_ADAPTER_WINDOW" \
+     --latency-marker "$LATENCY_MARKER_INTERVAL" \
      --auction-kafka-topic "$AUCTION_TOPIC" \
      --auction-kafka-group "$GROUP" \
      --auction-broker "$KAFKA" \
@@ -165,6 +176,17 @@ else
     --exchange-rate "$EXCHANGE_RAGE" \
     --checkpoint-dir "$CHECKPOINT_DIR" \
     --incremental-checkpoints "$INCREMENTAL_CHECKPOINTS" \
+    --ckp-interval "$CHECKPOINT_INTERVAL" \
+    --ckp-adapter "$CKP_ADAPTER_RECOVERY" \
+    --ckp-adapter-allow-range "$CKP_ADAPTER_ALLOW_RANGE" \
+    --ckp-adapter-check-interval "$CKP_ADAPTER_CHECK_INTERVAL" \
+    --ckp-adapter-inc-threshold "$CKP_ADAPTER_INC" \
+    --ckp-adapter-dec-threshold "$CKP_ADAPTER_DEC" \
+    --ckp-adapter-task-timer-interval "$CKP_ADAPTER_TASK_TIMER_INTERVAL" \
+    --ckp-adapter-ema "$CKP_ADAPTER_EMA" \
+    --ckp-adapter-counter-threshold "$CKP_ADAPTER_COUNTER" \
+    --ckp-adapter-window "$CKP_ADAPTER_WINDOW" \
+    --latency-marker "$LATENCY_MARKER_INTERVAL" \
     --kafka-topic "$TOPICNAME" \
     --kafka-group "$GROUP" \
     --broker "$KAFKA" & ) > "$TEMP_JOBID_STORAGE"
