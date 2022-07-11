@@ -63,6 +63,7 @@ import org.apache.flink.runtime.jobgraph.OperatorID;
 import org.apache.flink.runtime.jobgraph.tasks.CheckpointableTask;
 import org.apache.flink.runtime.jobgraph.tasks.CoordinatedTask;
 import org.apache.flink.runtime.jobgraph.tasks.InputSplitProvider;
+import org.apache.flink.runtime.jobgraph.tasks.JobCheckpointAdapterConfiguration;
 import org.apache.flink.runtime.jobgraph.tasks.TaskInvokable;
 import org.apache.flink.runtime.jobgraph.tasks.TaskOperatorEventGateway;
 import org.apache.flink.runtime.memory.MemoryManager;
@@ -303,16 +304,13 @@ public class Task
     /** The only one throughput meter per subtask. */
     private ThroughputCalculator throughputCalculator;
 
-    /** If submit metrics data to jobMaster once after completing a checkpoint */
-    private boolean isSubmitAfterCheckpoint = true;
-
     /** If broadcastSubmissionParams doesn't be called, value is false */
     private boolean isAdapterEnable = false;
 
     /** Periodically submit data to jobMaster */
     private Timer timer;
 
-    private final long TIMER_INTERVAL = 1000;
+    private JobCheckpointAdapterConfiguration ckpAdapterConfig;
 
     /**
      * <b>IMPORTANT:</b> This constructor may not start any work that would need to be undone in the
@@ -1333,16 +1331,22 @@ public class Task
         int rateCounter = 0;
         boolean thrIncreasing = true;
         boolean rateIncreasing = true;
-        private static final int counterThresholdForSubmission = 3;
-        private static final int recordNum = 4;
-        private static final double incThresholdForCounting = 0.25;
-        private static final double decThresholdForCounting = -0.1;
+        private final int counterThresholdForSubmission;
+        private final int recordNum;
+        private final double incThresholdForCounting;
+        private final double decThresholdForCounting;
         private final long interval;
+        private final double EMA;
 
-        public InnerMetricsThread(long interval) {
+        public InnerMetricsThread() {
             this.thrChangeRecords = new ArrayList<>();
             this.rateChangeRecords = new ArrayList<>();
-            this.interval = interval;
+            this.interval = ckpAdapterConfig.getTaskTimerInterval();
+            this.incThresholdForCounting = ckpAdapterConfig.getIncThreshold();
+            this.decThresholdForCounting = ckpAdapterConfig.getDecThreshold();
+            this.counterThresholdForSubmission = ckpAdapterConfig.getCounterThreshold();
+            this.recordNum = ckpAdapterConfig.getTaskWindowSize();
+            this.EMA = ckpAdapterConfig.getEMA();
         }
 
         @Override
@@ -1359,8 +1363,8 @@ public class Task
                     idealProcessingRate);
 
             // 1. get exponential moving averages
-            double thrAverage = 0.8 * throughput + 0.2 * previousThrAverage;
-            double rateAverage = 0.8 * idealProcessingRate + 0.2 * previousRateAverage;
+            double thrAverage = EMA * throughput + (1 - EMA) * previousThrAverage;
+            double rateAverage = EMA * idealProcessingRate + (1 - EMA) * previousRateAverage;
 
             // 2. get the percentage of change
             double thrChangePercentage;
@@ -1478,17 +1482,16 @@ public class Task
     /**
      * Schedule metrics submission to checkpoint adapter in jobmaster
      *
-     * @param interval Set the interval at which the checkpoint is reported.
+     * @param ckpAdapterConfig
      */
-    public void triggerMetricsSubmission(boolean isCkpAdapterEnable, long interval) {
-        isAdapterEnable = isCkpAdapterEnable;
-        if (interval == -1) {
-            isSubmitAfterCheckpoint = true;
-        } else {
-            isSubmitAfterCheckpoint = false;
+    public void triggerMetricsSubmission(JobCheckpointAdapterConfiguration ckpAdapterConfig) {
+        isAdapterEnable = ckpAdapterConfig.isAdapterEnable();
+        this.ckpAdapterConfig = ckpAdapterConfig;
+        if (isAdapterEnable) {
             // set timer
-            InnerMetricsThread metricsThread = new InnerMetricsThread(TIMER_INTERVAL);
-            timer.scheduleAtFixedRate(metricsThread, TIMER_INTERVAL, TIMER_INTERVAL);
+            long taskTimerInterval = ckpAdapterConfig.getTaskTimerInterval();
+            InnerMetricsThread metricsThread = new InnerMetricsThread();
+            timer.scheduleAtFixedRate(metricsThread, taskTimerInterval, taskTimerInterval);
         }
     }
 
@@ -1586,17 +1589,6 @@ public class Task
 
     public void notifyCheckpointComplete(final long checkpointID) {
         final TaskInvokable invokable = this.invokable;
-
-        if (isAdapterEnable && isSubmitAfterCheckpoint) {
-            TaskIOMetricGroup taskIOMetricGroup =
-                    metrics.getIOMetricGroup(); // include numRecordIn + busy
-            Meter numRecordsInRate = taskIOMetricGroup.getNumRecordsInRate();
-            double throughput = numRecordsInRate.getRate();
-            double busyTimeMsPerSecond = taskIOMetricGroup.getBusyTimePerSecond();
-            double idealProcessingRate = throughput * 1000 / busyTimeMsPerSecond;
-            taskManagerActions.submitTaskExecutorRunningStatus(
-                    new TaskManagerRunningState(executionId, throughput, idealProcessingRate));
-        }
 
         if (executionState == ExecutionState.RUNNING) {
             checkState(invokable instanceof CheckpointableTask, "invokable is not checkpointable");

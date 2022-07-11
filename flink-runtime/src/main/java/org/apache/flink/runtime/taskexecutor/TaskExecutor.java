@@ -1849,15 +1849,10 @@ public class TaskExecutor extends RpcEndpoint implements TaskExecutorGateway {
 
         configFuture.thenAccept(
                 config -> {
-                    boolean isAdatperEnable = config.isAdapterEnable();
-                    long interval = config.;
-                    log.info(
-                            "set checkpoint adapter submitting parameters {} for {}.",
-                            executionAttemptID,
-                            interval);
+                    log.info("set checkpoint adapter submitting parameters {}.", executionAttemptID);
                     final Task task = taskSlotTable.getTask(executionAttemptID);
                     if (task != null) {
-                        task.triggerMetricsSubmission(isAdatperEnable, interval);
+                        task.triggerMetricsSubmission(config);
                     } else {
                         final String message =
                                 "TaskManager received a adapter setting request for unknown task "

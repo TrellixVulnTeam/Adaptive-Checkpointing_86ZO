@@ -97,7 +97,6 @@ public class TestUtils {
                 new JobCheckpointAdapterConfiguration(5000L);
         checkpointAdapterConfiguration.setAllowRange(0.3);
         checkpointAdapterConfiguration.setCheckInterval(5000L);
-        checkpointAdapterConfiguration.setMetricsInterval(1000L);
 
         // enable checkpointing which is required to resume from a savepoint
         final CheckpointCoordinatorConfiguration checkpointCoordinatorConfiguration =

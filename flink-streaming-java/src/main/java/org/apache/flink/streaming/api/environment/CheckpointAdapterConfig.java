@@ -22,7 +22,7 @@ public class CheckpointAdapterConfig {
     /** for metrics submission **/
     private double incThreshold = 0.25;
 
-    private double decThreshold = 0.25;
+    private double decThreshold = -0.1;
 
     private long taskTimerInterval = 1000;
 
