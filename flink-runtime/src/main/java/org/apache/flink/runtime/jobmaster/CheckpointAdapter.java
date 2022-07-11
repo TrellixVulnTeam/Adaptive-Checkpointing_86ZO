@@ -60,6 +60,7 @@ public class CheckpointAdapter {
             JobCheckpointAdapterConfiguration checkpointAdapterConfiguration,
             CheckpointCoordinator coordinator) {
         this.checkpointAdapterConfiguration = checkpointAdapterConfiguration;
+        log.info(checkpointAdapterConfiguration.toString());
         this.coordinator = coordinator;
         this.baseInterval = chkConfig.getCheckpointInterval();
         this.isAdapterEnable = true;

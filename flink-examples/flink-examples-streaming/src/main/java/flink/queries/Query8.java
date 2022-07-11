@@ -46,6 +46,18 @@ public class Query8 {
         System.out.println("\t[--exchange-rate <exchange-rate>]");
         System.out.println("\t[--checkpoint-dir <filepath>]");
         System.out.println("\t[--incremental-checkpoints <true|false>]");
+
+        System.out.println("\t[--ckp-interval <long ckp interval>]");
+        System.out.println("\t[--ckp-adapter <long recovery time>]");
+        System.out.println("\t[--ckp-adapter-allow-range <double allow range>]");
+        System.out.println("\t[--ckp-adapter-check-interval <long check interval>]");
+        System.out.println("\t[--ckp-adapter-inc-threshold <double inc threshold>]");
+        System.out.println("\t[--ckp-adapter-dec-threshold <double dec threshold>]");
+        System.out.println("\t[--ckp-adapter-task-timer-interval <long timer interval>]");
+        System.out.println("\t[--ckp-adapter-ema <double ema>]");
+        System.out.println("\t[--ckp-adapter-counter-threshold <int counter>]");
+        System.out.println("\t[--ckp-adapter-window <int window>]");
+        System.out.println("\t[--latency-marker <long interval>]");
         System.out.println();
 
         // Checking input parameters
@@ -73,16 +85,44 @@ public class Query8 {
                         "checkpoint-dir", "hdfs://10.0.0.181:9000/checkpoint");
         boolean incrementalCheckpoints = params.getBoolean("incremental-checkpoints", false);
 
+        long ckpInterval = params.getLong("ckp-interval", -1);
+        long ckpAdapterRecoveryTime = params.getLong("ckp-adapter", -1);
+        double ckpAdapterAllowRange = params.getDouble("ckp-adapter-allow-range", 0.3);
+        long ckpAdapterCheckInterval = params.getLong("ckp-adapter-check-interval", 1000);
+        double ckpAdapterIncThreshold = params.getDouble("ckp-adapter-inc-threshold", 0.3);
+        double ckpAdapterDecThreshold = params.getDouble("ckp-adapter-dec-threshold", -0.1);
+        long ckpAdapterTaskTimerInterval = params.getLong("ckp-adapter-task-timer-interval", 1000);
+        double ckpAdapterEMA = params.getDouble("ckp-adapter-ema", -0.1);
+        int ckpAdapterCounter = params.getInt("ckp-adapter-counter-threshold", 3);
+        int ckpAdapterWindow = params.getInt("ckp-adapter-window", 4);
+        long latencyInterval = params.getLong("latency-marker", 60000);
+
         final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
         env.setStateBackend(new EmbeddedRocksDBStateBackend(incrementalCheckpoints));
         env.getCheckpointConfig().setCheckpointStorage(checkpointDir);
-        env.enableCheckpointing(100000, CheckpointingMode.EXACTLY_ONCE);
+
+        if (ckpInterval > 0) {
+            env.enableCheckpointing(ckpInterval, CheckpointingMode.EXACTLY_ONCE);
+        }
+
+        if (ckpInterval > 0 && ckpAdapterRecoveryTime > 0) {
+            env.enableCheckpointAdapter(ckpAdapterRecoveryTime);
+            env.setCheckpointAdapterAllowRange(ckpAdapterAllowRange);
+            env.setCheckpointAdapterCheckInterval(ckpAdapterCheckInterval);
+            env.setCheckpointAdapterIncThreshold(ckpAdapterIncThreshold);
+            env.setCheckpointAdapterDecThreshold(ckpAdapterDecThreshold);
+            env.setCheckpointAdapterTaskTimerInterval(ckpAdapterTaskTimerInterval);
+            env.setCheckpointAdapterEMA(ckpAdapterEMA);
+            env.setCheckpointAdapterCounterThreshold(ckpAdapterCounter);
+            env.setCheckpointAdapterTaskWindowSize(ckpAdapterWindow);
+        }
+
         env.getCheckpointConfig().setCheckpointTimeout(100000);
         env.disableOperatorChaining();
         env.getConfig().setAutoWatermarkInterval(5000);
 
         // enable latency tracking
-        env.getConfig().setLatencyTrackingInterval(100000);
+        env.getConfig().setLatencyTrackingInterval(latencyInterval);
 
         KafkaSource<Person> personKafkaSource =
                 KafkaSource.<Person>builder()
