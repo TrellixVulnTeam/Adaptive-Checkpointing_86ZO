@@ -7,7 +7,7 @@ STORAGE_FILE=allprevjobs
 # clear previous file
 
 export FLINKROOT=$(cd ..; pwd)
-echo $FLINKROOT
+echo "FLINKROOT: $FLINKROOT"
 cd "$FLINKROOT"/flink-dist/target/flink-1.14.0-bin/flink-1.14.0/ || (echo cd fails && exit 1)
 
 rm $STORAGE_FILE

@@ -29,11 +29,6 @@ public class JobCheckpointAdapterConfiguration implements Serializable {
     /** the same as user tolerant time. */
     private final long recoveryTime;
     /**
-     * The interval between data submissions of taskExecutor, The default timing is -1 , which means
-     * commit once after completing a checkpoint
-     */
-    private long metricsInterval;
-    /**
      * A new period calculated from the metrics outside this range triggers a period change
      * operation default value is 10%
      */
@@ -45,18 +40,24 @@ public class JobCheckpointAdapterConfiguration implements Serializable {
      * out-of-range change has occurred
      */
     private long checkInterval;
+
     /**
-     * If this value is true. You must both set allowRange and changePeriod Changes are triggered
-     * only if the data stays at a level (allowRange) for a period of time (changePeriod)
-     */
-    private boolean isDebounceMode;
+     * following are all configurable params
+     * */
+    private double incThreshold = 0.25;
+
+    private double decThreshold = 0.25;
+
+    private long taskTimerInterval = 1000;
+
+    private double EMA = 0.8;
+
+    private int counterThreshold = 3;
+
+    private int taskWindowSize = 4;
 
     public long getRecoveryTime() {
         return recoveryTime;
-    }
-
-    public long getMetricsInterval() {
-        return metricsInterval;
     }
 
     public double getAllowRange() {
@@ -67,16 +68,32 @@ public class JobCheckpointAdapterConfiguration implements Serializable {
         return checkInterval;
     }
 
-    public boolean isDebounceMode() {
-        return isDebounceMode;
+    public double getIncThreshold() {
+        return incThreshold;
+    }
+
+    public double getDecThreshold() {
+        return decThreshold;
+    }
+
+    public long getTaskTimerInterval() {
+        return taskTimerInterval;
+    }
+
+    public double getEMA() {
+        return EMA;
+    }
+
+    public int getCounterThreshold() {
+        return counterThreshold;
+    }
+
+    public int getTaskWindowSize() {
+        return taskWindowSize;
     }
 
     public boolean isAdapterEnable() {
         return recoveryTime > 0;
-    }
-
-    public void setMetricsInterval(long metricsInterval) {
-        this.metricsInterval = metricsInterval;
     }
 
     public void setAllowRange(double allowRange) {
@@ -87,8 +104,28 @@ public class JobCheckpointAdapterConfiguration implements Serializable {
         this.checkInterval = checkInterval;
     }
 
-    public void setDebounceMode(boolean debounceMode) {
-        isDebounceMode = debounceMode;
+    public void setIncThreshold(double incThreshold) {
+        this.incThreshold = incThreshold;
+    }
+
+    public void setDecThreshold(double decThreshold) {
+        this.decThreshold = decThreshold;
+    }
+
+    public void setTaskTimerInterval(long taskTimerInterval) {
+        this.taskTimerInterval = taskTimerInterval;
+    }
+
+    public void setEMA(double EMA) {
+        this.EMA = EMA;
+    }
+
+    public void setCounterThreshold(int counterThreshold) {
+        this.counterThreshold = counterThreshold;
+    }
+
+    public void setTaskWindowSize(int taskWindowSize) {
+        this.taskWindowSize = taskWindowSize;
     }
 
     public JobCheckpointAdapterConfiguration(long recoveryTime) {
@@ -97,15 +134,23 @@ public class JobCheckpointAdapterConfiguration implements Serializable {
 
     public JobCheckpointAdapterConfiguration(
             long recoveryTime,
-            long metricsInterval,
             double allowRange,
             long checkInterval,
-            boolean isDebounceMode) {
+            double incThreshold,
+            double decThreshold,
+            long taskTimerInterval,
+            double EMA,
+            int counterThreshold,
+            int taskWindowSize) {
         this.recoveryTime = recoveryTime;
-        this.metricsInterval = metricsInterval;
         this.allowRange = allowRange;
         this.checkInterval = checkInterval;
-        this.isDebounceMode = isDebounceMode;
+        this.incThreshold = incThreshold;
+        this.decThreshold = decThreshold;
+        this.taskTimerInterval = taskTimerInterval;
+        this.EMA = EMA;
+        this.counterThreshold = counterThreshold;
+        this.taskWindowSize = taskWindowSize;
     }
 
     public JobCheckpointAdapterConfiguration() {
@@ -118,12 +163,21 @@ public class JobCheckpointAdapterConfiguration implements Serializable {
                 "SnapshotAdapterSettings: "
                         + recoveryTime
                         + ","
-                        + metricsInterval
-                        + ","
                         + allowRange
                         + ","
                         + checkInterval
                         + ","
-                        + isDebounceMode);
+                        + incThreshold
+                        + ","
+                        + decThreshold
+                        + ","
+                        + taskTimerInterval
+                        + ","
+                        + EMA
+                        + ","
+                        + counterThreshold
+                        + ","
+                        + taskWindowSize
+        );
     }
 }

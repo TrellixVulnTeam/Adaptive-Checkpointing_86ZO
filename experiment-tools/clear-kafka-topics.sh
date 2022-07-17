@@ -5,7 +5,7 @@ USAGE="Usage: clear-kafka-topics.sh (IP:PORT)"
 
 # 128.31.25.127:9092
 KAFKA=$1
-echo $KAFKA
+echo "KAFKA: $KAFKA"
 
 STORAGE_FILE=alltopics
 # clear previous file
@@ -23,7 +23,7 @@ done < $STORAGE_FILE
 
 for topic in "${topiclist[@]}"
 do
-  echo "$topic"
+  echo "deleting topic: $topic"
   ./bin/kafka-topics.sh --bootstrap-server "$KAFKA" --delete --topic "$topic"
 done
 

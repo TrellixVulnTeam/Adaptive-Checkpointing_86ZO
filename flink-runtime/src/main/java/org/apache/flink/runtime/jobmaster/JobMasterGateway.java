@@ -35,6 +35,7 @@ import org.apache.flink.runtime.io.network.partition.ResultPartitionID;
 import org.apache.flink.runtime.jobgraph.IntermediateDataSetID;
 import org.apache.flink.runtime.jobgraph.JobVertexID;
 import org.apache.flink.runtime.jobgraph.OperatorID;
+import org.apache.flink.runtime.jobgraph.tasks.JobCheckpointAdapterConfiguration;
 import org.apache.flink.runtime.messages.Acknowledge;
 import org.apache.flink.runtime.messages.webmonitor.JobDetails;
 import org.apache.flink.runtime.operators.coordination.CoordinationRequest;
@@ -92,7 +93,7 @@ public interface JobMasterGateway
             final TaskManagerRunningState taskManagerRunningState);
 
     /** @return checkpoint adapter metrics submission interval */
-    CompletableFuture<Tuple2<Boolean, Long>> requestMetricsInterval();
+    CompletableFuture<JobCheckpointAdapterConfiguration> requestMetricsInterval();
 
     /**
      * Requests the next input split for the {@link ExecutionJobVertex}. The next input split is

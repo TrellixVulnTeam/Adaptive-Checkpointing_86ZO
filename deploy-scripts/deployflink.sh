@@ -1,6 +1,8 @@
 #!/bin/bash
-export FLINKROOT=$(builtin cd ..; pwd)
-echo $FLINKROOT
+export NODE_ROOT=$(cd ../..; pwd)
+echo "NODE_ROOT: $NODE_ROOT"
+export FLINKROOT=$(cd ..; pwd)
+echo "FLINKROOT: $FLINKROOT"
 
 localip=$(hostname -I)
 # localip=${$localip//\n/}
@@ -13,6 +15,10 @@ iplist=()
 cp "$FLINKROOT"/deploy-scripts/* "$FLINKROOT"/flink-dist/target/flink-1.14.0-bin/flink-1.14.0/conf/
 cd "$FLINKROOT"/flink-dist/target/flink-1.14.0-bin/flink-1.14.0/bin
 ./stop-cluster.sh
+
+# add hadoop pkg
+cp $NODE_ROOT/commons-cli-1.5.0.jar  $FLINKROOT/build-target/lib/
+cp $NODE_ROOT/flink-shaded-hadoop-3-uber-3.1.1.7.2.9.0-173-9.0.jar  $FLINKROOT/build-target/lib/
 
 # clean jobmaster log files before copy files to taskmanagers
 rm "$FLINKROOT"/build-target/log/*
@@ -32,7 +38,7 @@ for ip in "${iplist[@]}"
 do
   if [[ $ip != $localip ]]; then
     printf '%s\n' '-----------------------------------------------------'
-    echo $ip
+    echo "deploying on $ip"
     ssh "$ip" "rm -rf "$FLINKROOT""
     ssh "$ip" "mkdir "$FLINKROOT""
     ssh "$ip" "mkdir "$FLINKROOT"/flinkstate/"

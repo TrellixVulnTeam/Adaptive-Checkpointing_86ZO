@@ -1,11 +1,11 @@
 #!/bin/bash
 export FLINKROOT=$(cd ..; pwd)
-echo $FLINKROOT
+echo "FLINKROOT: $FLINKROOT"
 
 bin=`dirname "$0"`
 bin=`cd "$bin"; pwd`
 . "$bin"/config.sh
-echo $bin
+echo "bin: $bin"
 
 FOLDER_QUERY="queries"
 FOLDER_KAFKA_SOURCE="kafkaSources"
@@ -65,8 +65,6 @@ cd .. && mvn spotless:apply && mvn clean package -DskipTests
 if [ ! -d "$bin"/"$TARGET_DIR" ]; then
   mkdir "$bin"/"$TARGET_DIR"
 else
-  echo dir exist
+  echo "dir exist"
 fi
-# a problem to resolve ?
-sleep 5
 cp "$FLINKROOT"/flink-examples/flink-examples-streaming/target/flink-examples-streaming_2.11-1.14.0-jar-with-dependencies.jar "$bin"/"$TARGET_DIR"/"$CURR_JOB".jar

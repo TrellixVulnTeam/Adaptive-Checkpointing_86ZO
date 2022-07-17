@@ -63,6 +63,7 @@ import org.apache.flink.runtime.io.network.partition.TaskExecutorPartitionTracke
 import org.apache.flink.runtime.jobgraph.IntermediateDataSetID;
 import org.apache.flink.runtime.jobgraph.OperatorID;
 import org.apache.flink.runtime.jobgraph.tasks.InputSplitProvider;
+import org.apache.flink.runtime.jobgraph.tasks.JobCheckpointAdapterConfiguration;
 import org.apache.flink.runtime.jobgraph.tasks.TaskOperatorEventGateway;
 import org.apache.flink.runtime.jobmaster.AllocatedSlotInfo;
 import org.apache.flink.runtime.jobmaster.AllocatedSlotReport;
@@ -1843,20 +1844,15 @@ public class TaskExecutor extends RpcEndpoint implements TaskExecutorGateway {
 
     private void requestCheckpointAdapterConfig(
             final JobMasterGateway jobMasterGateway, ExecutionAttemptID executionAttemptID) {
-        CompletableFuture<Tuple2<Boolean, Long>> configFuture =
+        CompletableFuture<JobCheckpointAdapterConfiguration> configFuture =
                 jobMasterGateway.requestMetricsInterval();
 
         configFuture.thenAccept(
                 config -> {
-                    boolean isAdatperEnable = config.f0;
-                    long interval = config.f1;
-                    log.info(
-                            "set checkpoint adapter submitting parameters {} for {}.",
-                            executionAttemptID,
-                            interval);
+                    log.info("set checkpoint adapter submitting parameters {}.", executionAttemptID);
                     final Task task = taskSlotTable.getTask(executionAttemptID);
                     if (task != null) {
-                        task.triggerMetricsSubmission(isAdatperEnable, interval);
+                        task.triggerMetricsSubmission(config);
                     } else {
                         final String message =
                                 "TaskManager received a adapter setting request for unknown task "
