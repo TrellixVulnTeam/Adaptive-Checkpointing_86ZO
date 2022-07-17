@@ -14,13 +14,8 @@ class FileParser:
         '''
         file format
         {
-            "base":{
-                "30": 2  // latency value: count
-                ...
-            },
-            "new":{
-                ...
-            }
+            "base": [30, 123, 234, ...]  // latency_value
+            "new": [...]
         }
         '''
 
@@ -33,7 +28,7 @@ class FileParser:
                 except Exception as e:
                     print("Exception", e)
                     sys.exit(1)
-        latency_info = {}
+        latency_record = []
         for log in log_list:
             for line in open(self._src_dir+"/log/"+log, "r"):
                 if "%latency%" not in line:
@@ -41,12 +36,10 @@ class FileParser:
                 first_pos = line.find("%", 0)
                 second_pos = line.find("%", first_pos+1)
                 third_pos = line.find("%", second_pos+1)
-                latency = line[second_pos+1:third_pos]
-                if latency in latency_info:
-                    latency_info[latency] += 1
-                else:
-                    latency_info[latency] = 0
-        exp_info[self._exp_type] = latency_info
+                latency = int(line[second_pos+1:third_pos])
+                latency_record.append(latency)
+
+        exp_info[self._exp_type] = latency_record
         with open(self._target_dir + "/latency.json", "w") as w:
             json.dump(exp_info, w, indent=4, separators=(',', ':'))
 
