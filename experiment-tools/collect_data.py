@@ -14,7 +14,7 @@ class FileParser:
         '''
         file format
         {
-            "base": [30, 123, 234, ...]  // latency_value
+            "default": [30, 123, 234, ...]  // latency_value
             "new": [...]
         }
         '''

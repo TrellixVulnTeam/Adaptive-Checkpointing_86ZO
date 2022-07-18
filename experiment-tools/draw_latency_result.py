@@ -14,7 +14,7 @@ def get_data(src_dir):
             except Exception as e:
                 print("Exception", e)
                 sys.exit(1)
-        base_data = latency_info['base']
+        base_data = latency_info['default']
         new_data = latency_info['new']
     return base_data, new_data
 
@@ -26,6 +26,7 @@ def remove_error_data(list):
 
 def draw_result(list, list_mean, list_std, exp_type, save_path):
     num_bins = 20
+    plt.cla()
     n, bins, patches = plt.hist(list, num_bins, normed=1, facecolor='blue', alpha=0.8) # 直方图
     y = mlab.normpdf(bins, list_mean, list_std)  # 拟合概率分布
     plt.plot(bins, y, 'r--') #绘制y的曲线
