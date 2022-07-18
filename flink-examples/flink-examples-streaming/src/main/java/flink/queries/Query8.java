@@ -140,10 +140,12 @@ public class Query8 {
                         .build();
         DataStream<Person> persons =
                 env.fromSource(
-                        personKafkaSource, WatermarkStrategy.noWatermarks(), "Person Kafka source");
+                        personKafkaSource, WatermarkStrategy.noWatermarks(), "Person Kafka source")
+                    .disableChaining();
         DataStream<Person> personsWithWaterMark =
                 persons.assignTimestampsAndWatermarks(
-                        new PersonTimestampAssigner()); // .slotSharingGroup("src");
+                        new PersonTimestampAssigner())
+                        .disableChaining();
 
         KafkaSource<Auction> auctionKafkaSource =
                 KafkaSource.<Auction>builder()
@@ -166,7 +168,8 @@ public class Query8 {
                         "Auction Kafka source");
         DataStream<Auction> auctionsWithWaterMark =
                 auctions.assignTimestampsAndWatermarks(
-                        new AuctionTimestampAssigner()); // .slotSharingGroup("src");
+                        new AuctionTimestampAssigner())
+                        .disableChaining();
 
         // SELECT Rstream(P.id, P.name, A.reserve)
         // FROM Person [RANGE 1 HOUR] P, Auction [RANGE 1 HOUR] A
@@ -203,7 +206,7 @@ public class Query8 {
 
         GenericTypeInfo<Object> objectTypeInfo = new GenericTypeInfo<>(Object.class);
         joined.transform("DummyLatencySink", objectTypeInfo, new DummyLatencyCountingSink<>(logger))
-                .setParallelism(params.getInt("p-window", 1))
+                .disableChaining()
                 .name("Latency Sink")
                 .uid("Latency-Sink");; // .slotSharingGroup("sink");
 
