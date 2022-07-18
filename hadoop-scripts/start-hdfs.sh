@@ -29,7 +29,6 @@ do
     ssh "$ip" "mkdir "$HADOOP_HOME"/hadoop_data/hdfs/namenode"
     ssh "$ip" "mkdir "$HADOOP_HOME"/hadoop_data/hdfs/datanode"
     scp -r "$HADOOP_CONF_DIR"/workers "$ip":"$HADOOP_CONF_DIR"/workers
-    scp -r "$HADOOP_CONF_DIR"/masters "$ip":"$HADOOP_CONF_DIR"/masters
   fi
 done
 
