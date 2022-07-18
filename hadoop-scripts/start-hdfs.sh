@@ -1,10 +1,36 @@
 #!/bin/bash
 
-# 1. stop-all xxxxx
-#. read workers. ssh 到每一个ip上（仿照deployflink.sh) 删文件夹
-# 新建文件夹
-#。。。。。。。
+# stop all the nodes
+cd ~
+cd $HADOOP_HOME/sbin
+stop-all.sh
 
-# workers 覆盖掉原来的workers
+iplist=()
+# get workers
+cd "$FLINKROOT"/hadoop-scripts/
+while IFS= read -r line; do
+  ip="$line"
+  printf '%s\n' $ip
+  iplist+=("$line")
+done < workers
 
-# 2. start-all
+#configure workers
+# delete and recreate the data folder for each vm
+# change all the workers file in each vm
+for ip in "${iplist[@]}"
+do
+  if [[ $ip != $localip ]]; then
+    printf '%s\n' '-----------------------------------------------------'
+    echo "configuring on $ip"
+    ssh "$ip" "rm -rf "$HADOOP_HOME"/hadoop_data/hdfs/namenode"
+    ssh "$ip" "rm -rf "$HADOOP_HOME"/hadoop_data/hdfs/datanode"
+    ssh "$ip" "mkdir "$HADOOP_HOME"/hadoop_data/hdfs/namenode"
+    ssh "$ip" "mkdir "$HADOOP_HOME"/hadoop_data/hdfs/datanode"
+    scp -r "$HADOOP_CONF_DIR"/workers "$ip":"$HADOOP_CONF_DIR"/workers
+  fi
+done
+
+# start-all
+cd ~
+cd $HADOOP_HOME/sbin
+start-all.sh
