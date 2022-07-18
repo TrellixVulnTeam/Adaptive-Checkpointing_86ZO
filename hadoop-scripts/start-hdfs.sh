@@ -5,8 +5,7 @@ export HADOOP_CONF_DIR=/usr/local/hadoop/etc/hadoop
 
 # stop all the nodes
 cd $HADOOP_HOME/sbin || (echo "cd fail" && exit 1)
-sudo chmod +x stop-all.sh
-. stop-all.sh
+. ./stop-all.sh
 
 iplist=()
 # get workers
@@ -36,4 +35,5 @@ done
 # start-all
 cd ~
 cd $HADOOP_HOME/sbin || (echo "cd fail" && exit 1)
-sh start-all.sh
+. ./start-all.sh
+
