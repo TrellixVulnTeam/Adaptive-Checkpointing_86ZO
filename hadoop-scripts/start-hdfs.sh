@@ -4,10 +4,9 @@ export HADOOP_HOME=/usr/local/hadoop
 export HADOOP_CONF_DIR=/usr/local/hadoop/etc/hadoop
 
 # stop all the nodes
-cd ~
-. "$bin"/clear-prev-jobs.sh
 cd $HADOOP_HOME/sbin || (echo "cd fail" && exit 1)
-sh stop-all.sh
+sudo chmod +x stop-all.sh
+. stop-all.sh
 
 iplist=()
 # get workers
