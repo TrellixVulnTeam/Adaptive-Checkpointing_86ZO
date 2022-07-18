@@ -133,7 +133,6 @@ class FileParser:
             json.dump(tasks_data, w, indent=4, separators=(',', ':'))
 
 
-
     def process_data(self):
         parse_log()
         copy_files()
