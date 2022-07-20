@@ -250,8 +250,6 @@ def main(job_id, interval, total_time):
             if job_status['id'] == job_id:
                 status = job_status['status']
                 break
-        if status == "CANCELED" or status == "FAILED":
-            break
 
         for task in job_details['vertices']:
             task_id = task['id']
