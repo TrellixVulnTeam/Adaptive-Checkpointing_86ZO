@@ -17,8 +17,7 @@ cd "$QUERY_ID"/ || (echo cd fails && exit 1)
 echo $pid
 
 get_threads_num(){
-  id=$1
-  thread_num=$(cat /proc/$id/status | grep Threads)
+  thread_num=$(cat /proc/$pid/status | grep Threads)
   echo -e "$thread_num" >> thread_num_record.txt
 }
 
@@ -28,12 +27,12 @@ get_cpu_usage(){
   cpu_usage=$( bc <<< "$us_usage + $sys_usage" )
   echo -e "user usage: $us_usage, total usage: $cpu_usage" >> cpu_record.txt
 }
-
-get_disk_io(){
-  id=$1
-  disk_io_info=$(sudo iotop -p "$id" -q -n 1 | grep 'Current DISK WRITE')
-  echo -e $disk_io_info >> disk_record.txt
-}
+#
+#get_disk_io(){
+#  id=$1
+#  disk_io_info=$(sudo iotop -p "$id" -q -n 1 | grep 'Current DISK WRITE')
+#  echo -e $disk_io_info >> disk_record.txt
+#}
 
 while(( $count <= $REPEAT))
 do
