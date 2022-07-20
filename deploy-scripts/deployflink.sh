@@ -28,7 +28,9 @@ cd "$FLINKROOT"/deploy-scripts/
 while IFS= read -r line; do
   ip="$line"
   printf '%s\n' $ip
-  iplist+=("$line")
+  if [ ! -z "$ip" ]; then
+    iplist+=("$ip")
+  fi
 done < workers
 
 #remove useless jars
