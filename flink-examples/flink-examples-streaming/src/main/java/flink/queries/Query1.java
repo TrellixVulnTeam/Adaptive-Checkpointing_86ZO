@@ -135,7 +135,8 @@ public class Query1 {
                         .build();
 
         DataStream<Bid> bids =
-                env.fromSource(source, WatermarkStrategy.noWatermarks(), "Kafka source");
+                env.fromSource(source, WatermarkStrategy.noWatermarks(), "Kafka source")
+                    .disableChaining();
 
         DataStream<Tuple4<Long, Long, Long, Long>> mapped =
                 bids.map(
@@ -149,13 +150,14 @@ public class Query1 {
                                                 bid.bidder,
                                                 bid.dateTime);
                                     }
-                                }) // .setParallelism(params.getInt("p-map", 1))
+                                })
+                        .disableChaining()
                         .name("Mapper")
                         .uid("Mapper"); // .slotSharingGroup("map");
 
         GenericTypeInfo<Object> objectTypeInfo = new GenericTypeInfo<>(Object.class);
         mapped.transform("DummyLatencySink", objectTypeInfo, new DummyLatencyCountingSink<>(logger))
-                .setParallelism(params.getInt("p-sink", 1))
+                .disableChaining()
                 .name("Latency Sink")
                 .uid("Latency-Sink"); // .slotSharingGroup("sink");
 

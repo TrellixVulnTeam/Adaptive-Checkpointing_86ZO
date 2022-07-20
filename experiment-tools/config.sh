@@ -11,6 +11,7 @@ TARGET_DIR="target"
 
 # for data collection
 FETCH_INTERVAL=5
+METRICS_FETCH_INTERVAL=1
 FETCH_TOTAL_TIME=60
 
 # for exp-2
