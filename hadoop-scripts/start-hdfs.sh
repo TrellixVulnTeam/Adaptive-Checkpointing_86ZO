@@ -24,14 +24,15 @@ do
   if [[ $ip != $localip ]]; then
     printf '%s\n' '-----------------------------------------------------'
     echo "configuring on $ip"
-    ssh "$ip" "rm -rf "$HADOOP_HOME"/hadoop_data/hdfs/namenode"
-    ssh "$ip" "rm -rf "$HADOOP_HOME"/hadoop_data/hdfs/datanode"
+    ssh "$ip" "rm -r "$HADOOP_HOME"/hadoop_data/hdfs/namenode"
+    ssh "$ip" "rm -r "$HADOOP_HOME"/hadoop_data/hdfs/datanode"
     ssh "$ip" "mkdir "$HADOOP_HOME"/hadoop_data/hdfs/namenode"
     ssh "$ip" "mkdir "$HADOOP_HOME"/hadoop_data/hdfs/datanode"
     scp -r "$HADOOP_CONF_DIR"/workers "$ip":"$HADOOP_CONF_DIR"/workers
   fi
 done
 
+hdfs namenode -format
 # start-all
 cd ~
 cd $HADOOP_HOME/sbin || (echo "cd fail" && exit 1)
