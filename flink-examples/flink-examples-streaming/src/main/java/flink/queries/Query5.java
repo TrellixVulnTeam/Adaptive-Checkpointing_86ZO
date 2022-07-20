@@ -126,11 +126,13 @@ public class Query5 {
                         .build();
 
         DataStream<Bid> bids =
-                env.fromSource(source, WatermarkStrategy.noWatermarks(), "Kafka source");
+                env.fromSource(source, WatermarkStrategy.noWatermarks(), "Kafka source")
+                    .disableChaining();
 
         DataStream<Bid> bidsWithWaterMark =
                 bids.assignTimestampsAndWatermarks(
-                        new TimestampAssigner()); // .slotSharingGroup("src");
+                        new TimestampAssigner())
+                    .disableChaining();
 
         // SELECT B1.auction, count(*) AS num
         // FROM Bid [RANGE 60 MINUTE SLIDE 1 MINUTE] B1
@@ -140,14 +142,13 @@ public class Query5 {
                         .keyBy((KeySelector<Bid, Long>) bid -> bid.auction)
                         .window(SlidingEventTimeWindows.of(Time.seconds(5), Time.seconds(1)))
                         .aggregate(new CountBids())
+                        .disableChaining()
                         .name("Sliding Window");
-        // .setParallelism(params.getInt("p-window", 1))
-        // .slotSharingGroup("window");
 
         GenericTypeInfo<Object> objectTypeInfo = new GenericTypeInfo<>(Object.class);
         windowed.transform(
                         "DummyLatencySink", objectTypeInfo, new DummyLatencyCountingSink<>(logger))
-                .setParallelism(params.getInt("p-window", 1))
+                .disableChaining()
                 .name("Latency Sink")
                 .uid("Latency-Sink");// .slotSharingGroup("sink");
 

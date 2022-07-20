@@ -11,7 +11,7 @@ echo "FLINKROOT: $FLINKROOT"
 cd "$FLINKROOT"/flink-dist/target/flink-1.14.0-bin/flink-1.14.0/ || (echo cd fails && exit 1)
 
 rm $STORAGE_FILE
-# 1. read all kafka jobs as list
+# 1. read all jobs as list
 ./bin/flink list > "$STORAGE_FILE"
 # 2. use a loop to clean every jobs
 joblist=()

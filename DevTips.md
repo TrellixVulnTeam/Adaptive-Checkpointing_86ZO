@@ -22,3 +22,10 @@
    https://nightlies.apache.org/flink/flink-docs-release-1.11/ops/deployment/hadoop.html#hadoop-integration.
 3. change the IP in core-sites.xml to make the datanode connect to the namenode.
 4. use http:<ip of the hadoop vm>:9870 to access the hadoop UI to debug and check status.
+5. To add more vms as datanodes: add JAVA_HOME, HADOOP_HOME, HADOOP_CONF_DIR and HADOOP_CLASSPATH in "~/.bashrc" of all vms(master and workers).
+Don't forget to use "source ~/.bashrc" to refresh the settings. Make new datanode folder and namenode folder in $HADOOP_HOME/hadoop_data/hdfs. Add these folders
+as dfs.datanode.data.dir in hdfs-sites.xml. Change the replication factor to 3 (need 3 copies of the data). Add masters file in $HADOOP_CONF_DIR with masternode private IP. Add all the "workers" 
+node private IP in "workers" file. When we need a new node use "scp /usr/local/hadoop flinknode-XX:/usr/local/" to install hadoop in that vm. Remove the datanode as well as namenode folders 
+and recreate them. Also change some settings in yarn-site.xml and mapred-site.xml. 
+Refer to 1). https://hadooptutorials.info/2020/10/05/part-1-apache-hadoop-installation-on-single-node-cluster-with-google-cloud-virtual-machine/
+2).https://hadooptutorials.info/2020/10/09/part-2-add-a-new-data-node-on-existing-hadoop-cluster/
