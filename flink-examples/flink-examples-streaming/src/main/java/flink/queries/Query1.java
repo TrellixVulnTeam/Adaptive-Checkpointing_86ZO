@@ -136,7 +136,7 @@ public class Query1 {
 
         DataStream<Bid> bids =
                 env.fromSource(source, WatermarkStrategy.noWatermarks(), "Kafka source")
-                    .disableChaining();
+                    .slotSharingGroup("src");
 
         DataStream<Tuple4<Long, Long, Long, Long>> mapped =
                 bids.map(
@@ -151,13 +151,13 @@ public class Query1 {
                                                 bid.dateTime);
                                     }
                                 })
-                        .disableChaining()
+                        .slotSharingGroup("bids-map")
                         .name("Mapper")
                         .uid("Mapper"); // .slotSharingGroup("map");
 
         GenericTypeInfo<Object> objectTypeInfo = new GenericTypeInfo<>(Object.class);
         mapped.transform("DummyLatencySink", objectTypeInfo, new DummyLatencyCountingSink<>(logger))
-                .disableChaining()
+                .slotSharingGroup("sink")
                 .name("Latency Sink")
                 .uid("Latency-Sink"); // .slotSharingGroup("sink");
 

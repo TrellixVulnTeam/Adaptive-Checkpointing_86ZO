@@ -127,12 +127,12 @@ public class Query5 {
 
         DataStream<Bid> bids =
                 env.fromSource(source, WatermarkStrategy.noWatermarks(), "Kafka source")
-                    .disableChaining();
+                    .slotSharingGroup("src");
 
         DataStream<Bid> bidsWithWaterMark =
                 bids.assignTimestampsAndWatermarks(
                         new TimestampAssigner())
-                    .disableChaining();
+                    .slotSharingGroup("timestamp");
 
         // SELECT B1.auction, count(*) AS num
         // FROM Bid [RANGE 60 MINUTE SLIDE 1 MINUTE] B1
@@ -142,15 +142,15 @@ public class Query5 {
                         .keyBy((KeySelector<Bid, Long>) bid -> bid.auction)
                         .window(SlidingEventTimeWindows.of(Time.seconds(5), Time.seconds(1)))
                         .aggregate(new CountBids())
-                        .disableChaining()
+                        .slotSharingGroup("window")
                         .name("Sliding Window");
 
         GenericTypeInfo<Object> objectTypeInfo = new GenericTypeInfo<>(Object.class);
         windowed.transform(
                         "DummyLatencySink", objectTypeInfo, new DummyLatencyCountingSink<>(logger))
-                .disableChaining()
+                .slotSharingGroup("sink")
                 .name("Latency Sink")
-                .uid("Latency-Sink");// .slotSharingGroup("sink");
+                .uid("Latency-Sink");
 
         // execute program
         env.execute("Nexmark Query5");
