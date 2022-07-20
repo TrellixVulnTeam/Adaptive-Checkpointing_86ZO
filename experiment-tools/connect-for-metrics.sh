@@ -18,7 +18,7 @@ done < workers
 
 cd "$FLINKROOT"/experiment-tools || (echo cd flink root fails && exit 1)
 echo "========= connecting flink nodes for metrics ==========="
-for ip in "${ipltist[@]}"
+for ip in "${iplist[@]}"
 do
   ssh "$ip" 'bash -s' < get-sys-metrics.sh "$QUERY_ID" "$FETCH_TOTAL_TIME" "$METRCIS_FETCH_INTERVAL" &
 done
