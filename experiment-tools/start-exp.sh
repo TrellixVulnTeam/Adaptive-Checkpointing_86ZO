@@ -1,7 +1,5 @@
 #!/bin/bash
-export HADOOP_CLASSPATH="/usr/local/hadoop/etc/hadoop"
-echo "HADOOP_CLASSPATH: $HADOOP_CLASSPATH"
-export FLINKROOT=$(cd ..; pwd)
+FLINKROOT=$(cd ..; pwd)
 echo "FLINKROOT: $FLINKROOT"
 USAGE="Usage: start-exp.sh (1/3/5/8)"
 KAFKAIP="128.31.25.127"

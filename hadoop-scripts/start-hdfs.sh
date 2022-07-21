@@ -1,7 +1,7 @@
 #!/bin/bash
-export FLINKROOT=$(cd ..; pwd)
-export HADOOP_HOME=/usr/local/hadoop
-export HADOOP_CONF_DIR=/usr/local/hadoop/etc/hadoop
+FLINKROOT=$(cd ..; pwd)
+HADOOP_HOME=/usr/local/hadoop
+HADOOP_CONF_DIR=/usr/local/hadoop/etc/hadoop
 
 # stop all the nodes
 cd $HADOOP_HOME/sbin || (echo "cd fail" && exit 1)
