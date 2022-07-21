@@ -11,7 +11,7 @@ bin=`cd "$bin"; pwd`
 echo "bin: $bin"
 
 # clean all hadoop files
-#. "$FLINKROOT"/hadoop-scripts/start-hdfs.sh
+. "$FLINKROOT"/hadoop-scripts/start-hdfs.sh
 
 # clean all previous jobs
 . "$bin"/clear-prev-jobs.sh
