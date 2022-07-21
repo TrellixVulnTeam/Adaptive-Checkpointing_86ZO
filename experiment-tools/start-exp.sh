@@ -18,9 +18,7 @@ echo "bin: $bin"
 
 # clean logs before a new experiment start
 # rm "$FLINKROOT"/build-target/log/* will not clean taskmanagers' lgo, have to restart-cluster to clean log file
-cd "$FLINKROOT"/deploy-scripts/ || (echo "cd fail" && exit 1)
-. deployflink.sh
-cd "$bin" || (echo "cd fail" && exit 1)
+. "$FLINKROOT"/deploy-scripts/deployflink.sh
 
 # clean all previous kafka topics
 scp -r "$bin"/clear-kafka-topics.sh "ubuntu@$KAFKAIP":kafka/
@@ -58,7 +56,7 @@ echo  "RUN QUERY: $QUERY_TO_RUN"
 
 # submit Query JOB
 cd "$FLINKROOT"/flink-dist/target/flink-1.14.0-bin/flink-1.14.0/ || (echo "cd fails" && exit 1)
-FLINK_TARGET="$FLINKROOT"/flink-dist/target/flink-1.14.0-bin/flink-1.14.0/
+FLINK_TARGET="$FLINKROOT"/flink-dist/target/flink-1.14.0-bin/flink-1.14.0
 
 # Jobid storage
 TEMP_JOBID_STORAGE="$bin"/getJobid
