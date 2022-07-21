@@ -12,6 +12,9 @@ bin=`dirname "$0"`
 bin=`cd "$bin"; pwd`
 echo "bin: $bin"
 
+# clean all hadoop files
+. "$FLINKROOT"/hadoop-scripts/start-hdfs.sh
+
 # clean all previous jobs
 . "$bin"/clear-prev-jobs.sh
 
@@ -130,7 +133,7 @@ if [ $withTwoSource = true ]; then
     ( ./bin/flink run "$auctionSjar" \
      --kafka-topic "$AUCTION_TOPIC" \
      --broker "$KAFKA" \
-     --ratelist "$RATELIST" & ) >  "$TEMP_AUCTION_SOURCE_ID_STORAGE"
+     --ratelist "$AUCTION_RATELIST" & ) >  "$TEMP_AUCTION_SOURCE_ID_STORAGE"
 
     # ensure auction source is setup
     while : ; do
@@ -145,7 +148,7 @@ if [ $withTwoSource = true ]; then
     ( ./bin/flink run "$personSjar" \
      --kafka-topic "$PERSON_TOPIC" \
      --broker "$KAFKA" \
-     --ratelist "$RATELIST" & ) > "$TEMP_PERSON_SOURCE_ID_STORAGE"
+     --ratelist "$PERSON_RATELIST" & ) > "$TEMP_PERSON_SOURCE_ID_STORAGE"
 
     # ensure person source is setup
     while : ; do
@@ -201,11 +204,11 @@ else
          fi
      done
 
-    # run auction source
+    # run bid source
     ( ./bin/flink run "$bidSjar" \
      --kafka-topic "$TOPICNAME" \
      --broker "$KAFKA" \
-     --ratelist "$RATELIST" & ) > "$TEMP_BID_SOURCE_ID_STORAGE"
+     --ratelist "$BID_RATELIST" & ) > "$TEMP_BID_SOURCE_ID_STORAGE"
 
     # ensure bid source is setup
      while : ; do
