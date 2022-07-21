@@ -60,6 +60,7 @@ echo  "RUN QUERY: $QUERY_TO_RUN"
 
 # submit Query JOB
 cd "$FLINKROOT"/flink-dist/target/flink-1.14.0-bin/flink-1.14.0/ || (echo "cd fails" && exit 1)
+FLINK_TARGET="$FLINKROOT"/flink-dist/target/flink-1.14.0-bin/flink-1.14.0/
 
 # Jobid storage
 TEMP_JOBID_STORAGE="$bin"/getJobid
@@ -97,7 +98,7 @@ if [ $withTwoSource = true ]; then
 
     sleep 2
     # run query
-    ( ./bin/flink run --detached "$Queryjar" \
+    ( "$FLINK_TARGET"/bin/flink run --detached "$Queryjar" \
      --exchange-rate "$EXCHANGE_RAGE" \
      --checkpoint-dir "$CHECKPOINT_DIR" \
      --incremental-checkpoints "$INCREMENTAL_CHECKPOINTS" \
@@ -130,7 +131,7 @@ if [ $withTwoSource = true ]; then
      done
 
     # run auction source
-    ( ./bin/flink run "$auctionSjar" \
+    ( "$FLINK_TARGET"/bin/flink run "$auctionSjar" \
      --kafka-topic "$AUCTION_TOPIC" \
      --broker "$KAFKA" \
      --ratelist "$AUCTION_RATELIST" & ) >  "$TEMP_AUCTION_SOURCE_ID_STORAGE"
@@ -145,7 +146,7 @@ if [ $withTwoSource = true ]; then
     done
 
     # run person source
-    ( ./bin/flink run "$personSjar" \
+    ( "$FLINK_TARGET"/bin/flink run "$personSjar" \
      --kafka-topic "$PERSON_TOPIC" \
      --broker "$KAFKA" \
      --ratelist "$PERSON_RATELIST" & ) > "$TEMP_PERSON_SOURCE_ID_STORAGE"
@@ -175,7 +176,7 @@ else
 
     sleep 2
     # run query, & guaqi, \ huanhang, pid kill, chmod +x file
-    ( ./bin/flink run --detached "$Queryjar" \
+    ( "$FLINK_TARGET"/bin/flink run --detached "$Queryjar" \
     --exchange-rate "$EXCHANGE_RAGE" \
     --checkpoint-dir "$CHECKPOINT_DIR" \
     --incremental-checkpoints "$INCREMENTAL_CHECKPOINTS" \
@@ -205,7 +206,7 @@ else
      done
 
     # run bid source
-    ( ./bin/flink run "$bidSjar" \
+    ( "$FLINK_TARGET"/bin/flink run "$bidSjar" \
      --kafka-topic "$TOPICNAME" \
      --broker "$KAFKA" \
      --ratelist "$BID_RATELIST" & ) > "$TEMP_BID_SOURCE_ID_STORAGE"
