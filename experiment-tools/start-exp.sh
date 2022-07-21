@@ -55,7 +55,6 @@ esac
 echo  "RUN QUERY: $QUERY_TO_RUN"
 
 # submit Query JOB
-cd "$FLINKROOT"/flink-dist/target/flink-1.14.0-bin/flink-1.14.0/ || (echo "cd fails" && exit 1)
 FLINK_TARGET="$FLINKROOT"/flink-dist/target/flink-1.14.0-bin/flink-1.14.0
 
 # Jobid storage

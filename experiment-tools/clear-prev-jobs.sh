@@ -8,11 +8,11 @@ STORAGE_FILE=allprevjobs
 
 FLINKROOT=$(cd ..; pwd)
 echo "FLINKROOT: $FLINKROOT"
-cd "$FLINKROOT"/flink-dist/target/flink-1.14.0-bin/flink-1.14.0/ || (echo cd fails && exit 1)
+FLINK_TARGET="$FLINKROOT"/flink-dist/target/flink-1.14.0-bin/flink-1.14.0
 
 rm $STORAGE_FILE
 # 1. read all jobs as list
-./bin/flink list > "$STORAGE_FILE"
+"$FLINK_TARGET"/bin/flink list > "$STORAGE_FILE"
 # 2. use a loop to clean every jobs
 joblist=()
 while IFS= read -r line; do
@@ -25,7 +25,7 @@ done < $STORAGE_FILE
 for job in "${joblist[@]}"
 do
   printf 'delete %s\n' $job
-  ./bin/flink cancel "$job"
+  "$FLINK_TARGET"/bin/flink cancel "$job"
 done
 
 # 3. remove alljobs
