@@ -4,8 +4,7 @@ HADOOP_HOME=/usr/local/hadoop
 HADOOP_CONF_DIR=/usr/local/hadoop/etc/hadoop
 
 # stop all the nodes
-cd $HADOOP_HOME/sbin || (echo "cd fail" && exit 1)
-. ./stop-all.sh
+. $HADOOP_HOME/sbin/stop-all.sh
 
 iplist=()
 # get workers
@@ -34,7 +33,5 @@ done
 
 hdfs namenode -format
 # start-all
-cd ~
-cd $HADOOP_HOME/sbin || (echo "cd fail" && exit 1)
-. ./start-all.sh
+.  $HADOOP_HOME/sbin/start-all.sh
 
