@@ -150,8 +150,8 @@ def main(target_path, src_path, exp_type):
 
 if __name__ == "__main__":
     target_path = "/home/ubuntu/data"
-    query_id = sys.argv[2]
-    exp_type = sys.argv[3]
+    query_id = sys.argv[1]
+    exp_type = sys.argv[2]
     src_path = "./" + query_id
     target_path = target_path + "/" + query_id
     if not os.path.exists(target_path):
