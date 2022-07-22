@@ -31,6 +31,7 @@ ssh "ubuntu@$KAFKAIP" "cd kafka/ && ./clear-kafka-topics.sh $KAFKA"
 echo "CHECKPOINT_DIR: $CHECKPOINT_DIR"
 
 QUERY=$1
+EXP_TYPE=$2
 QUERY_TO_RUN=""
 withTwoSource=false
 case $QUERY in
@@ -233,6 +234,9 @@ wait
 echo "========== start collecting logs =========="
 . "$bin"/collectlog.sh "$QUERY_ID"
 cd "$FLINKROOT"/experiment-tools/ || (echo "cd fail" && exit 1)
+
+# collect all the files
+python3 collect_data.py . "$QUERY_ID" "$EXP_TYPE"
 
 # clear all jobs and topics
 echo "=========== start clearing jobs and kafka topics ============="

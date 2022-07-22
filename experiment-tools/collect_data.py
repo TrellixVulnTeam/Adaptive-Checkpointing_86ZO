@@ -150,8 +150,10 @@ def main(target_path, src_path, exp_type):
 
 if __name__ == "__main__":
     target_path = "/home/ubuntu/data"
-    src_path = sys.argv[1]
     query_id = sys.argv[2]
     exp_type = sys.argv[3]
-    src_path = src_path + "/" + query_id
+    src_path = "./" + query_id
+    target_path = target_path + "/" + query_id
+    if not os.path.exists(target_path):
+        os.makedirs(target_path)
     main(target_path, src_path, exp_type)
