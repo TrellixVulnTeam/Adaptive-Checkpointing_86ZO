@@ -32,6 +32,7 @@ echo "CHECKPOINT_DIR: $CHECKPOINT_DIR"
 
 QUERY=$1
 EXP_TYPE=$2
+DIR_NAME=$3
 QUERY_TO_RUN=""
 withTwoSource=false
 case $QUERY in
@@ -237,7 +238,7 @@ cd "$FLINKROOT"/experiment-tools/ || (echo "cd fail" && exit 1)
 
 # collect all the files
 echo "=========== start collecting all the data =============="
-python3 collect_data.py "$QUERY_ID" "$EXP_TYPE"
+python3 collect_data.py "$QUERY_ID" "$EXP_TYPE" "$DIR_NAME"
 
 # clear all jobs and topics
 echo "=========== start clearing jobs and kafka topics ============="

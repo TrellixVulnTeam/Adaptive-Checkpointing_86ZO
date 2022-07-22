@@ -26,7 +26,7 @@ def convert(list):
 def remove_error_data(l):
     list_mean = np.mean(l)
     list_std = np.std(l)
-    result = list(filter(lambda x: (x >= (list_mean-3*list_std)) & (x <= (list_mean + 3*list_std)), l))
+    result = list(filter(lambda x: (x >= (list_mean-list_std)) & (x <= (list_mean+list_std)), l))
     return result, list_mean, list_std
 
 def draw_distribution_result(list, list_mean, list_std, exp_type, key, config, save_path):

@@ -52,7 +52,6 @@ class FileParser:
             if not os.path.exists(self._target_dir+"/"+node+"/"+self._exp_type):
                 os.mkdir(self._target_dir+"/"+node+"/"+self._exp_type)
             shutil.copy(self._src_dir+"/sys-metrics/"+node+"/cpu_record.txt", self._target_dir+"/"+node+"/"+self._exp_type)
-            shutil.copy(self._src_dir+"/sys-metrics/"+node+"/disk_record.txt", self._target_dir+"/"+node+"/"+self._exp_type)
             shutil.copy(self._src_dir+"/sys-metrics/"+node+"/thread_num_record.txt", self._target_dir+"/"+node+"/"+self._exp_type)
 
     def parse_metrics(self):
@@ -151,9 +150,10 @@ def main(target_path, src_path, exp_type):
 if __name__ == "__main__":
     target_path = "/home/ubuntu/data"
     query_id = sys.argv[1]
-    exp_type = sys.argv[2]
+    dir_name = sys.argv[2]
+    exp_type = sys.argv[3]
     src_path = "./" + query_id
-    target_path = target_path + "/" + query_id
+    target_path = target_path + "/" + dir_name
     if not os.path.exists(target_path):
         os.makedirs(target_path)
     main(target_path, src_path, exp_type)
