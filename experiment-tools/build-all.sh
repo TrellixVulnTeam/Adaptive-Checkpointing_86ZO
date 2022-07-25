@@ -1,5 +1,5 @@
 #!/bin/bash
-export FLINKROOT=$(cd ..; pwd)
+FLINKROOT=$(cd ..; pwd)
 echo "FLINKROOT: $FLINKROOT"
 
 bin=`dirname "$0"`

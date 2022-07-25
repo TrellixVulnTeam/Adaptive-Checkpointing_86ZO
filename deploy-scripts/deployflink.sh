@@ -1,7 +1,7 @@
 #!/bin/bash
-export NODE_ROOT=$(cd ../..; pwd)
+NODE_ROOT=$(cd ../..; pwd)
 echo "NODE_ROOT: $NODE_ROOT"
-export FLINKROOT=$(cd ..; pwd)
+FLINKROOT=$(cd ..; pwd)
 echo "FLINKROOT: $FLINKROOT"
 
 localip=$(hostname -I)
@@ -28,7 +28,9 @@ cd "$FLINKROOT"/deploy-scripts/
 while IFS= read -r line; do
   ip="$line"
   printf '%s\n' $ip
-  iplist+=("$line")
+  if [ ! -z "$ip" ]; then
+    iplist+=("$ip")
+  fi
 done < workers
 
 #remove useless jars

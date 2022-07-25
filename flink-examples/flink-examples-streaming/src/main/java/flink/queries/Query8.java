@@ -140,10 +140,12 @@ public class Query8 {
                         .build();
         DataStream<Person> persons =
                 env.fromSource(
-                        personKafkaSource, WatermarkStrategy.noWatermarks(), "Person Kafka source");
+                        personKafkaSource, WatermarkStrategy.noWatermarks(), "Person Kafka source")
+                    .slotSharingGroup("person-src");
         DataStream<Person> personsWithWaterMark =
                 persons.assignTimestampsAndWatermarks(
-                        new PersonTimestampAssigner()); // .slotSharingGroup("src");
+                        new PersonTimestampAssigner())
+                        .slotSharingGroup("person-timestamp");
 
         KafkaSource<Auction> auctionKafkaSource =
                 KafkaSource.<Auction>builder()
@@ -163,10 +165,12 @@ public class Query8 {
                 env.fromSource(
                         auctionKafkaSource,
                         WatermarkStrategy.noWatermarks(),
-                        "Auction Kafka source");
+                        "Auction Kafka source")
+                    .slotSharingGroup("auc-src");
         DataStream<Auction> auctionsWithWaterMark =
                 auctions.assignTimestampsAndWatermarks(
-                        new AuctionTimestampAssigner()); // .slotSharingGroup("src");
+                        new AuctionTimestampAssigner())
+                        .slotSharingGroup("auc-timestamp");
 
         // SELECT Rstream(P.id, P.name, A.reserve)
         // FROM Person [RANGE 1 HOUR] P, Auction [RANGE 1 HOUR] A
@@ -203,7 +207,7 @@ public class Query8 {
 
         GenericTypeInfo<Object> objectTypeInfo = new GenericTypeInfo<>(Object.class);
         joined.transform("DummyLatencySink", objectTypeInfo, new DummyLatencyCountingSink<>(logger))
-                .setParallelism(params.getInt("p-window", 1))
+                .slotSharingGroup("sink")
                 .name("Latency Sink")
                 .uid("Latency-Sink");; // .slotSharingGroup("sink");
 

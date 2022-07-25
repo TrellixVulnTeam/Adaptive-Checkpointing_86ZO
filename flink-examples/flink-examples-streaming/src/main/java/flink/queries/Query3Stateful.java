@@ -162,7 +162,8 @@ public class Query3Stateful {
                 env.fromSource(
                         auctionKafkaSource,
                         WatermarkStrategy.noWatermarks(),
-                        "Auction Kafka source");
+                        "Auction Kafka source")
+                    .slotSharingGroup("auc-src");
 
         KafkaSource<Person> personKafkaSource =
                 KafkaSource.<Person>builder()
@@ -181,7 +182,8 @@ public class Query3Stateful {
 
         DataStream<Person> persons =
                 env.fromSource(
-                        personKafkaSource, WatermarkStrategy.noWatermarks(), "Person Kafka source");
+                        personKafkaSource, WatermarkStrategy.noWatermarks(), "Person Kafka source")
+                    .slotSharingGroup("person-src");
 
         DataStream<Person> filteredPersons =
                 persons.filter(
@@ -192,10 +194,8 @@ public class Query3Stateful {
                                         || person.state.equals("ID")
                                         || person.state.equals("CA"));
                             }
-                        });
-        // .setParallelism(params.getInt("p-person-source", 1))
-        // .slotSharingGroup("filt");
-
+                        })
+                        .slotSharingGroup("person-filter");
         // SELECT Istream(P.name, P.city, P.state, A.id)
         // FROM Auction A [ROWS UNBOUNDED], Person P [ROWS UNBOUNDED]
         // WHERE A.seller = P.id AND (P.state = `OR' OR P.state = `ID' OR P.state = `CA')
@@ -222,16 +222,14 @@ public class Query3Stateful {
                 keyedAuctions
                         .connect(keyedPersons)
                         .flatMap(new JoinPersonsWithAuctions())
+                        .slotSharingGroup("joined")
                         .name("Incremental join");
-        // .setParallelism(params.getInt("p-join", 1))
-        // .slotSharingGroup("join");
 
         GenericTypeInfo<Object> objectTypeInfo = new GenericTypeInfo<>(Object.class);
         joined.transform("DummyLatencySink", objectTypeInfo, new DummyLatencyCountingSink<>(logger))
-                .setParallelism(params.getInt("p-join", 1))
+                .slotSharingGroup("sink")
                 .name("Latency Sink")
                 .uid("Latency-Sink");
-        // .slotSharingGroup("sink");
 
         // execute program
         env.execute("Nexmark Query3 stateful");

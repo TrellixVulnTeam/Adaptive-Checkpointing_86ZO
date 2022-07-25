@@ -1,3 +1,4 @@
+# parameters for shell scripts
 QUERY1="Query1"
 QUERY3="Query3Stateful"
 QUERY5="Query5"

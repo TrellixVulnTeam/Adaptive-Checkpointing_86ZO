@@ -1,7 +1,5 @@
 #!/bin/bash
-export HADOOP_CLASSPATH="/usr/local/hadoop/etc/hadoop"
-echo "HADOOP_CLASSPATH: $HADOOP_CLASSPATH"
-export FLINKROOT=$(cd ..; pwd)
+FLINKROOT=$(cd ..; pwd)
 echo "FLINKROOT: $FLINKROOT"
 USAGE="Usage: start-exp.sh (1/3/5/8)"
 KAFKAIP="128.31.25.127"
@@ -12,14 +10,15 @@ bin=`dirname "$0"`
 bin=`cd "$bin"; pwd`
 echo "bin: $bin"
 
+# clean all hadoop files
+. "$FLINKROOT"/hadoop-scripts/start-hdfs.sh
+
 # clean all previous jobs
 . "$bin"/clear-prev-jobs.sh
 
 # clean logs before a new experiment start
 # rm "$FLINKROOT"/build-target/log/* will not clean taskmanagers' lgo, have to restart-cluster to clean log file
-cd "$FLINKROOT"/deploy-scripts/ || (echo "cd fail" && exit 1)
-. deployflink.sh
-cd "$bin" || (echo "cd fail" && exit 1)
+. "$FLINKROOT"/deploy-scripts/deployflink.sh
 
 # clean all previous kafka topics
 scp -r "$bin"/clear-kafka-topics.sh "ubuntu@$KAFKAIP":kafka/
@@ -58,7 +57,7 @@ esac
 echo  "RUN QUERY: $QUERY_TO_RUN"
 
 # submit Query JOB
-cd "$FLINKROOT"/flink-dist/target/flink-1.14.0-bin/flink-1.14.0/ || (echo "cd fails" && exit 1)
+FLINK_TARGET="$FLINKROOT"/flink-dist/target/flink-1.14.0-bin/flink-1.14.0
 
 # Jobid storage
 TEMP_JOBID_STORAGE="$bin"/getJobid
@@ -96,7 +95,7 @@ if [ $withTwoSource = true ]; then
 
     sleep 2
     # run query
-    ( ./bin/flink run --detached "$Queryjar" \
+    ( "$FLINK_TARGET"/bin/flink run --detached "$Queryjar" \
      --exchange-rate "$EXCHANGE_RAGE" \
      --checkpoint-dir "$CHECKPOINT_DIR" \
      --incremental-checkpoints "$INCREMENTAL_CHECKPOINTS" \
@@ -129,10 +128,10 @@ if [ $withTwoSource = true ]; then
      done
 
     # run auction source
-    ( ./bin/flink run "$auctionSjar" \
+    ( "$FLINK_TARGET"/bin/flink run "$auctionSjar" \
      --kafka-topic "$AUCTION_TOPIC" \
      --broker "$KAFKA" \
-     --ratelist "$RATELIST" & ) >  "$TEMP_AUCTION_SOURCE_ID_STORAGE"
+     --ratelist "$AUCTION_RATELIST" & ) >  "$TEMP_AUCTION_SOURCE_ID_STORAGE"
 
     # ensure auction source is setup
     while : ; do
@@ -144,10 +143,10 @@ if [ $withTwoSource = true ]; then
     done
 
     # run person source
-    ( ./bin/flink run "$personSjar" \
+    ( "$FLINK_TARGET"/bin/flink run "$personSjar" \
      --kafka-topic "$PERSON_TOPIC" \
      --broker "$KAFKA" \
-     --ratelist "$RATELIST" & ) > "$TEMP_PERSON_SOURCE_ID_STORAGE"
+     --ratelist "$PERSON_RATELIST" & ) > "$TEMP_PERSON_SOURCE_ID_STORAGE"
 
     # ensure person source is setup
     while : ; do
@@ -174,7 +173,7 @@ else
 
     sleep 2
     # run query, & guaqi, \ huanhang, pid kill, chmod +x file
-    ( ./bin/flink run --detached "$Queryjar" \
+    ( "$FLINK_TARGET"/bin/flink run --detached "$Queryjar" \
     --exchange-rate "$EXCHANGE_RAGE" \
     --checkpoint-dir "$CHECKPOINT_DIR" \
     --incremental-checkpoints "$INCREMENTAL_CHECKPOINTS" \
@@ -203,11 +202,11 @@ else
          fi
      done
 
-    # run auction source
-    ( ./bin/flink run "$bidSjar" \
+    # run bid source
+    ( "$FLINK_TARGET"/bin/flink run "$bidSjar" \
      --kafka-topic "$TOPICNAME" \
      --broker "$KAFKA" \
-     --ratelist "$RATELIST" & ) > "$TEMP_BID_SOURCE_ID_STORAGE"
+     --ratelist "$BID_RATELIST" & ) > "$TEMP_BID_SOURCE_ID_STORAGE"
 
     # ensure bid source is setup
      while : ; do
