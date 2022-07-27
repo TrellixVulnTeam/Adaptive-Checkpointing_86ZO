@@ -27,7 +27,7 @@ def draw_result(list, list_mean, list_std, exp_type, save_path):
     plt.cla()
     n, bins, patches = plt.hist(list, num_bins, color='blue', alpha=0.8) # 直方图
     y = norm.pdf(bins, list_mean, list_std)  # 拟合概率分布
-    plt.plot(bins, y*len(list), 'r--') #绘制y的曲线
+#     plt.plot(bins, y*len(list), 'r--') #绘制y的曲线
     plt.xlabel('Latency (ms)') #绘制x轴
     plt.ylabel('Frequency') #绘制y轴
     plt.title('Latency distribution based on ' + exp_type + ' strategy')
