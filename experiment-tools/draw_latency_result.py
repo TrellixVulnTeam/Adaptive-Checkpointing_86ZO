@@ -14,9 +14,7 @@ def get_data(src_dir):
             except Exception as e:
                 print("Exception", e)
                 sys.exit(1)
-        base_data = latency_info['default']
-        new_data = latency_info['new']
-    return base_data, new_data
+    return latency_info
 
 def remove_error_data(l):
     list_mean = np.mean(l)
@@ -31,17 +29,17 @@ def draw_result(list, list_mean, list_std, exp_type, save_path):
     y = norm.pdf(bins, list_mean, list_std)  # 拟合概率分布
     plt.plot(bins, y*len(list), 'r--') #绘制y的曲线
     plt.xlabel('Latency (ms)') #绘制x轴
-    plt.ylabel('Probability') #绘制y轴
+    plt.ylabel('Frequency') #绘制y轴
     plt.title('Latency distribution based on ' + exp_type + ' strategy')
     plt.savefig(save_path)
     return
 
 def main(src_dir, target_dir):
-    base_data, new_data = get_data(src_dir)
-    base_data, base_mean, base_std = remove_error_data(base_data)
-    draw_result(base_data, base_mean, base_std, "default", target_dir + "/latency_default.jpg")
-    new_data, new_mean, new_std = remove_error_data(new_data)
-    draw_result(new_data, new_mean, new_std, "new", target_dir + "/latency_new.jpg")
+    latency_info = get_data(src_dir)
+    for key in latency_info:
+        latency_data = latency_info[key]
+        latency_data, latency_mean, latency_std = remove_error_data(latency_data)
+        draw_result(latency_data, latency_mean, latency_std, key, target_dir + "/latency_" + key + ".jpg")
     return
 
 if __name__ == "__main__":

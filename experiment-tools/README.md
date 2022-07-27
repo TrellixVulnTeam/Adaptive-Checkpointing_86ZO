@@ -32,20 +32,21 @@ vim argsconfig.sh # change configs such as ratelist in this file
 ```
 The script will automatically submit the jars of Query and its Source, just specify the Query to run.
 ```shell
-./start-exp.sh 1 # start Query1
-./start-exp.sh 3 # start Query3
-./start-exp.sh 5 # start Query5
-./start-exp.sh 8 # start Query8
+./start-exp.sh 1 /dir/path/to/save/data # start Query1
+./start-exp.sh 3 /dir/path/to/save/data # start Query3
+./start-exp.sh 5 /dir/path/to/save/data # start Query5
+./start-exp.sh 8 /dir/path/to/save/data # start Query8
 ```
-# stop Experiment
-
-# record metrics
+# copy files from remote
 ```shell
-python3 flink_connector.py --job_id job_id --target_path target_path --interval interval(second) --repeat repeat
-
-# default value:
-# target_path "./metrics_record.json"
-# interval 5
-# repeat 5
+scp -r ubuntu@128.31.26.144:/dir/path/of/data /dir/path/to/save/data/locally
 ```
+# draw result graph
+```shell
+cd /your/experiment-tools/path
+sh ./draw-figures.sh /dir/path/of/data /dir/path/to/save/figures
+```
+
+
+
 

@@ -145,15 +145,14 @@ class FileParser:
 def main(target_path, src_path, exp_type):
     file_parser = FileParser(src_path, target_path, exp_type)
     file_parser.process_data()
+    shutil.rmtree(src_path)
 
 
 if __name__ == "__main__":
-    target_path = "/home/ubuntu/data"
     query_id = sys.argv[1]
-    dir_name = sys.argv[2]
-    exp_type = sys.argv[3]
+    exp_type = sys.argv[2]
+    target_path = sys.argv[3]
     src_path = "./" + query_id
-    target_path = target_path + "/" + dir_name
     if not os.path.exists(target_path):
         os.makedirs(target_path)
     main(target_path, src_path, exp_type)

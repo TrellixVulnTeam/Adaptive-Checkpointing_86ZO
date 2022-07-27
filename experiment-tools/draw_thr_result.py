@@ -33,8 +33,8 @@ def draw_distribution_result(list, list_mean, list_std, exp_type, key, config, s
     num_bins = 20
     plt.cla()
     n, bins, patches = plt.hist(list, num_bins, color='blue', alpha=0.8) # 直方图
-    y = norm.pdf(bins, list_mean, list_std)  # 拟合概率分布
-    plt.plot(bins, y*len(list)*len(list)*len(list), 'r--') #绘制y的曲线
+#     y = norm.pdf(bins, list_mean, list_std)  # 拟合概率分布
+#     plt.plot(bins, y*len(list)*len(list)*len(list), 'r--') #绘制y的曲线
     x_label = config['xlabel']
     y_label = config['ylabel']
     title = config['title']
@@ -44,11 +44,24 @@ def draw_distribution_result(list, list_mean, list_std, exp_type, key, config, s
     plt.savefig(save_path)
     return
 
-def draw_comparison_result(base_list, new_list, task, key, save_path):
+def draw_comparison_result(lists, task, key, save_path):
     plt.cla()
-    x = list(range(max(len(base_list), len(new_list))))
-    plt.plot(x, base_list, 's-', color='r', label='default')
-    plt.plot(x, new_list, 'o-', color='g', label='new')
+    if len(lists) == 1:
+        for exp_type in lists:
+            list_data = lists[exp_type]
+            x = list(range(list_data))
+            plt.plot(x, list_data, 's-', color='r', label=exp_type)
+    elif len(lists) == 2:
+        all_values = list(lists.values())
+        r = min(len(all_values[0]), len(all_values[1]))
+        x = list(range(r))
+#         print("=======\n")
+#         print(task, key)
+#         print(len(lists['default']))
+#         print("\n")
+        plt.plot(x, lists['default'][0:r], 's-', color='r', label='default')
+        plt.plot(x, lists['new'][0:r], 'o-', color='g', label='new')
+
     plt.xlabel('time')
     plt.ylabel('throughput (' + key + ')')
     plt.legend(loc='best')
@@ -58,39 +71,42 @@ def draw_comparison_result(base_list, new_list, task, key, save_path):
 def draw_every_tasks_result(metrics_info, target_dir):
     for task in metrics_info:
         if task != 'checkpoints':
-            base_data = metrics_info[task]['default']
-            new_data = metrics_info[task]['new']
-            for key in base_data:
-                base_record = convert(base_data[key])
-                new_record = convert(new_data[key])
-                draw_comparison_result(base_record, new_record, task, key,
-                                       target_dir + "/throughput_comp_" + task + key + ".jpg")
-                base_record, base_mean, base_std = remove_error_data(base_record)
-                new_record, new_mean, new_std = remove_error_data(new_record)
-                config = {'xlabel': 'Throughput (' + key +')',
-                          'ylabel': 'Probability',
-                          'title': 'Throughput distribution of task ' + task + ' based on '}
-                draw_distribution_result(base_record, base_mean, base_std, 'default', key, config,
-                                         target_dir + "/throughput_default_" + task + key + ".jpg")
-                draw_distribution_result(new_record, new_mean, new_std, 'new', key, config,
-                                         target_dir + "/throughput_new_" + task + key + ".jpg")
+            thr_data = metrics_info[task]
+#             base_data = metrics_info[task]['default']
+#             new_data = metrics_info[task]['new']
+            comp_lists = {}
+            for exp_type in thr_data:
+                for key in thr_data[exp_type]:
+                    record_data = convert(thr_data[exp_type][key])
+                    record_data, record_mean, record_std = remove_error_data(record_data)
+                    config = {'xlabel': 'Throughput (' + key +')',
+                              'ylabel': 'Frequency',
+                              'title': 'Throughput distribution of task ' + task + ' based on '}
+                    draw_distribution_result(record_data, record_mean, record_std, exp_type, key, config,
+                                             target_dir + "/throughput_" + exp_type + "_" + task + "_" + key + ".jpg")
+                    if key in comp_lists:
+                        comp_lists[key][exp_type] = record_data
+                    else:
+                        new_dict = {}
+                        new_dict[exp_type] = record_data
+                        comp_lists[key] = new_dict
+            for key in comp_lists:
+                records = comp_lists[key]
+                draw_comparison_result(records, task, key,
+                                       target_dir + "/throughput_comp_" + task + "_" + key + ".jpg")
     return
 
 def draw_checkpoints_result(checkpoints_info, target_dir):
-    base_data = checkpoints_info['default']
-    new_data = checkpoints_info['new']
-    for key in ['end_to_end_duration', 'state_size']:
-        base_record = convert(base_data[key])
-        new_record = convert(new_data[key])
-        base_record, base_mean, base_std = remove_error_data(base_record)
-        new_record, new_mean, new_std = remove_error_data(new_record)
-        config = {'xlabel': key,
-                  'ylabel': 'Probability',
-                  'title': key + ' distribution of checkpoints' + ' based on '}
-        draw_distribution_result(base_record, base_mean, base_std, 'default', key, config,
-                                 target_dir + "/checkpoint_default_" + key + ".jpg")
-        draw_distribution_result(new_record, new_mean, new_std, 'new', key, config,
-                                 target_dir + "/checkpoint_new_" + key + ".jpg")
+    for exp_type in checkpoints_info:
+        data = checkpoints_info[exp_type]
+        for key in ['end_to_end_duration', 'state_size']:
+            record_data = convert(data[key])
+            record_data, record_mean, record_std = remove_error_data(record_data)
+            config = {'xlabel': key,
+                      'ylabel': 'Frequency',
+                      'title': key + ' distribution of checkpoints' + ' based on '}
+            draw_distribution_result(record_data, record_mean, record_std, exp_type, key, config,
+                                     target_dir + "/checkpoint_ " + exp_type + "_" + key + ".jpg")
 
 
 def main(src_dir, target_dir):

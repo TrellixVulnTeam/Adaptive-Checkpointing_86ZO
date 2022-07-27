@@ -38,7 +38,7 @@ while(( $count <= $REPEAT))
 do
   count=$(( $count + 1))
   sleep "$METRICS_FETCH_INTERVAL"
-  get_threads_num $pid
+#  get_threads_num $pid
   get_cpu_usage
 #  get_disk_io $pid
 done
