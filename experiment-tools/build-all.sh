@@ -24,3 +24,12 @@ cp "$FLINKROOT"/flink-examples/flink-examples-streaming/target/Query8-jar-with-d
 cp "$FLINKROOT"/flink-examples/flink-examples-streaming/target/KafkaSourceBid-jar-with-dependencies.jar "$bin"/"$TARGET_DIR"/"$BID_SOURCE".jar
 cp "$FLINKROOT"/flink-examples/flink-examples-streaming/target/KafkaSourceAuction-jar-with-dependencies.jar "$bin"/"$TARGET_DIR"/"$AUCTION_SOURCE".jar
 cp "$FLINKROOT"/flink-examples/flink-examples-streaming/target/KafkaSourcePerson-jar-with-dependencies.jar "$bin"/"$TARGET_DIR"/"$PERSON_SOURCE".jar
+
+# home/ubuntu
+NODE_ROOT=$(cd ~; pwd)
+echo "NODE_ROOT: $NODE_ROOT"
+
+# add hadoop pkg
+cp $NODE_ROOT/commons-cli-1.5.0.jar  $FLINKROOT/build-target/lib/
+cp $NODE_ROOT/flink-shaded-hadoop-3-uber-3.1.1.7.2.9.0-173-9.0.jar  $FLINKROOT/build-target/lib/
+
