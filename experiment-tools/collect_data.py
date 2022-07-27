@@ -52,7 +52,7 @@ class FileParser:
             if not os.path.exists(self._target_dir+"/"+node+"/"+self._exp_type):
                 os.mkdir(self._target_dir+"/"+node+"/"+self._exp_type)
             shutil.copy(self._src_dir+"/sys-metrics/"+node+"/cpu_record.txt", self._target_dir+"/"+node+"/"+self._exp_type)
-            shutil.copy(self._src_dir+"/sys-metrics/"+node+"/thread_num_record.txt", self._target_dir+"/"+node+"/"+self._exp_type)
+#             shutil.copy(self._src_dir+"/sys-metrics/"+node+"/thread_num_record.txt", self._target_dir+"/"+node+"/"+self._exp_type)
 
     def parse_metrics(self):
         '''

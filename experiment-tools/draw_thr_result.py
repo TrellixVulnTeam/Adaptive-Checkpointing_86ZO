@@ -49,7 +49,7 @@ def draw_comparison_result(lists, task, key, save_path):
     if len(lists) == 1:
         for exp_type in lists:
             list_data = lists[exp_type]
-            x = list(range(list_data))
+            x = list(range(len(list_data)))
             plt.plot(x, list_data, 's-', color='r', label=exp_type)
     elif len(lists) == 2:
         all_values = list(lists.values())
