@@ -22,17 +22,11 @@ get_threads_num(){
 }
 
 get_cpu_usage(){
-  us_usage=$(top -b -n 1 | grep Cpu | awk '{print $2}')
-  sys_usage=$(top -b -n 1 | grep Cpu | awk '{print $4}')
-  cpu_usage=$( bc <<< "$us_usage + $sys_usage" )
-  echo -e "user usage: $us_usage, total usage: $cpu_usage" >> cpu_record.txt
+  usr_usage=$(top -b -n 1 | grep Cpu | awk '{print $2}')
+#  sys_usage=$(top -b -n 1 | grep Cpu | awk '{print $4}')
+#  cpu_usage=$( bc <<< "$us_usage + $sys_usage" )
+  echo -e "$usr_usage" >> cpu_record.txt
 }
-#
-#get_disk_io(){
-#  id=$1
-#  disk_io_info=$(sudo iotop -p "$id" -q -n 1 | grep 'Current DISK WRITE')
-#  echo -e $disk_io_info >> disk_record.txt
-#}
 
 while(( $count <= $REPEAT))
 do

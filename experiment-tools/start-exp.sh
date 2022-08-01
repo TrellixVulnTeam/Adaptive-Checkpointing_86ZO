@@ -31,7 +31,6 @@ echo "CHECKPOINT_DIR: $CHECKPOINT_DIR"
 
 QUERY=$1
 DIR_PATH=$2
-EXP_TYPE="new"
 QUERY_TO_RUN=""
 withTwoSource=false
 case $QUERY in
@@ -55,6 +54,8 @@ case $QUERY in
      ;;
 esac
 echo  "RUN QUERY: $QUERY_TO_RUN"
+
+EXP_NAME="$EXP_TYPE"_"$QUERY_TO_RUN"_"$CKP_ADAPTER_RECOVERY"_"$CKP_ADAPTER_ALLOW_RANGE"_"$CKP_ADAPTER_CHECK_INTERVAL"
 
 # submit Query JOB
 FLINK_TARGET="$FLINKROOT"/flink-dist/target/flink-1.14.0-bin/flink-1.14.0
@@ -236,13 +237,8 @@ echo "========== start collecting logs =========="
 cd "$FLINKROOT"/experiment-tools/ || (echo "cd fail" && exit 1)
 
 # collect all the files
-echo "=========== start collecting all the data =============="
-if [ $CKP_ADAPTER_RECOVERY -eq -1 ];
-  then
-    EXP_TYPE="default"
-fi
 
-python3 collect_data.py "$QUERY_ID" "$EXP_TYPE" "$DIR_PATH"
+python3 collect_data.py "$QUERY_ID" "$EXP_NAME" "$DIR_PATH"
 
 # clear all jobs and topics
 echo "=========== start clearing jobs and kafka topics ============="
