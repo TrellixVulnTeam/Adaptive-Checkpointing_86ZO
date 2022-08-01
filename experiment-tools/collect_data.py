@@ -12,7 +12,7 @@ class FileParser:
 
     def parse_latency(self):
         '''
-        file format
+        latency file format
         {
             "exp_name": [30, 123, 234, ...]  // latency_value
             "exp_name": [...]
@@ -47,7 +47,7 @@ class FileParser:
 
     def parse_cpu(self):
         '''
-        file format
+        cpu file format
         {
             "exp_name": [10.2, 3.1, ...]
             "exp_name": [...]
@@ -67,7 +67,7 @@ class FileParser:
                         print("Exception", e)
                         sys.exit(1)
             cpu_record = []
-            for line in open(self._src_dir+"/sys-metrics/"+node+"/cpu_record.txt", 'r')
+            for line in open(self._src_dir+"/sys-metrics/"+node+"/cpu_record.txt", 'r'):
                 value = float(line)
                 cpu_record.append(value)
             exp_info[self._exp_name] = cpu_record
@@ -78,7 +78,7 @@ class FileParser:
 
     def parse_thr(self):
         '''
-        file format
+        throughput file format
         {
             "task_name": {
                 "exp_name": [187, 177, ]
@@ -103,7 +103,7 @@ class FileParser:
                     throughput_record = task['0.numBytesInPerSecond']
 #                     task_num_thr = task['0.numRecordsInPerSecond']
                     if os.path.exists(self._target_dir + "/throughput.json"):
-                        with open(self._target_dir + "/thoughput.json", 'r') as r1:
+                        with open(self._target_dir + "/throughput.json", 'r') as r1:
                             try:
                                 task_data = json.load(r1)[task_name]
                             except Exception as e:
@@ -116,9 +116,9 @@ class FileParser:
         with open(self._target_dir + "/throughput.json", "w") as w:
             json.dump(tasks_data, w, indent=4, separators=(',', ':'))
 
-    def parse_ckp():
+    def parse_ckp(self):
         '''
-        file format:
+        checkpoint file format:
         {
             "end_to_end_duration": {
                 "exp_name":[],
@@ -159,6 +159,10 @@ class FileParser:
                     average_duration = checkpoints_info[checkpoint_id]['end_to_end_duration']
                     average_size = checkpoints_info[checkpoint_id]['state_size']
 
+        checkpoints_duration = {}
+        checkpoints_size = {}
+        checkpoint_avg_dur = {}
+        checkpoint_avg_size = {}
         if os.path.exists(self._target_dir + "/checkpoints.json"):
             with open(self._target_dir + "/checkpoints.json", 'r') as r:
                 try:
@@ -167,17 +171,18 @@ class FileParser:
                     print("Exception", e)
                     sys.exit(1)
             checkpoints_duration = checkpoint_data['end_to_end_duration']
-            checkpoints_duration[self._exp_name] = checkpoints_duration_list
-            checkpoint_data['end_to_end_duration'] = checkpoints_duration
             checkpoints_size = checkpoint_data['state_size']
-            checkpoints_size[self._exp_name] = checkpoints_size_list
-            checkpoint_data['state_size'] = checkpoints_size
             checkpoint_avg_dur = checkpoint_data['average_duration']
-            checkpoint_avg_dur[self._exp_name] = average_duration
-            checkpoint_data['average_duration'] = checkpoint_avg_dur
             checkpoint_avg_size = checkpoint_data['average_size']
-            checkpoint_avg_size[self._exp_name] = average_size
-            checkpoint_data['average_size'] = checkpoint_avg_size
+
+        checkpoints_duration[self._exp_name] = checkpoints_duration_list
+        checkpoint_data['end_to_end_duration'] = checkpoints_duration
+        checkpoints_size[self._exp_name] = checkpoints_size_list
+        checkpoint_data['state_size'] = checkpoints_size
+        checkpoint_avg_dur[self._exp_name] = average_duration
+        checkpoint_data['average_duration'] = checkpoint_avg_dur
+        checkpoint_avg_size[self._exp_name] = average_size
+        checkpoint_data['average_size'] = checkpoint_avg_size
 
         with open(self._target_dir + "/checkpoints.json", "w") as w:
             json.dump(checkpoint_data, w, indent=4, separators=(',', ':'))
