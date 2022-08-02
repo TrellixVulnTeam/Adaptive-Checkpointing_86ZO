@@ -2,6 +2,7 @@ import os
 import sys
 import json
 import shutil
+import random
 
 class FileParser:
 
@@ -41,6 +42,7 @@ class FileParser:
                 latency_record.append(latency)
 
         exp_info[self._exp_name] = latency_record
+        exp_info = truncate_lists(exp_info)
         target_path = self._target_dir+"/latency.json"
         with open(target_path, 'w') as w:
             json.dump(exp_info, w, indent=4, separators=(',', ':'))
@@ -187,6 +189,14 @@ class FileParser:
         with open(self._target_dir + "/checkpoints.json", "w") as w:
             json.dump(checkpoint_data, w, indent=4, separators=(',', ':'))
 
+    def truncate_lists(self, exp_info):
+        min_size = sys.maxsize
+        for value in exp_info.values():
+            min_size = min(len(value), min_size)
+        for exp_name in exp_info:
+            while (len(exp_info[exp_name]) > min_size):
+                 exp_info[exp_name].pop(random.randrange(len(exp_info[exp_name])))
+        return exp_info
 
 
     def process_data(self):
