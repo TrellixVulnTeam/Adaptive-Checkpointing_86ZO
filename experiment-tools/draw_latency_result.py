@@ -1,7 +1,7 @@
 import os
 import sys
 import json
-import pandas
+import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
@@ -14,9 +14,7 @@ def get_data(src_dir):
             except Exception as e:
                 print("Exception", e)
                 sys.exit(1)
-        base_data = latency_info['base']
-        new_data = latency_info['new']
-    return base_data, new_data
+    return latency_info
 
 def remove_error_data(list):
     list_mean = np.mean(list)
@@ -26,8 +24,8 @@ def remove_error_data(list):
 
 def draw_result(src_dir, target_dir):
     #get data
-    save_hist_path = target_dir + "/latency.jpg"
-    save_kde_path = target_dir + "/kde.jpg"
+    save_hist_path = target_dir + "/latency_hist.jpg"
+    save_kde_path = target_dir + "/latency_kde.jpg"
     latency_info = get_data(src_dir)
 
     #draw histograme
@@ -40,11 +38,12 @@ def draw_result(src_dir, target_dir):
     plt.ylabel('Frequency', fontsize = 10)
     plt.title('Latency distribution', fontsize = 10)
     plt.savefig(save_hist_path)
-    plt.show()
+#     plt.show()
+    plt.cla()
 
     #draw kde
     df = pd.DataFrame.from_dict(latency_info)
-    print(df)
+#     print(df)
     sns.kdeplot(data=df, clip=(0, 1000))
     plt.xlabel('Latency (ms)',fontsize = 10)
     plt.ylabel('Frequency', fontsize = 10)
