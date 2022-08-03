@@ -8,5 +8,6 @@ if [ ! -d "$PIC_DIR" ]; then
 fi
 
 python3 draw_latency_result.py "$DATA_DIR" "$PIC_DIR"
-python3 draw_metrics_result.py "$DATA_DIR" "$PIC_DIR"
+python3 draw_ckp_result.py "$DATA_DIR" "$PIC_DIR"
 python3 draw_thr_result.py "$DATA_DIR" "$PIC_DIR"
+python3 draw_cpu_result.py "$DATA_DIR" "$PIC_DIR"

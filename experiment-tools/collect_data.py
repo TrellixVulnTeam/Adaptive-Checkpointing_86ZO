@@ -42,7 +42,7 @@ class FileParser:
                 latency_record.append(latency)
 
         exp_info[self._exp_name] = latency_record
-        exp_info = truncate_lists(exp_info)
+        exp_info = self.truncate_lists(exp_info)
         target_path = self._target_dir+"/latency.json"
         with open(target_path, 'w') as w:
             json.dump(exp_info, w, indent=4, separators=(',', ':'))
@@ -178,8 +178,10 @@ class FileParser:
             checkpoint_avg_size = checkpoint_data['average_size']
 
         checkpoints_duration[self._exp_name] = checkpoints_duration_list
+        checkpoints_duration = self.truncate_lists(checkpoints_duration)
         checkpoint_data['end_to_end_duration'] = checkpoints_duration
         checkpoints_size[self._exp_name] = checkpoints_size_list
+        checkpoints_size = self.truncate_lists(checkpoints_size)
         checkpoint_data['state_size'] = checkpoints_size
         checkpoint_avg_dur[self._exp_name] = average_duration
         checkpoint_data['average_duration'] = checkpoint_avg_dur
