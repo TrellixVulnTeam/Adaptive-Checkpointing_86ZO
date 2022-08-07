@@ -4,10 +4,9 @@ import json
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
-import seaborn as sns
+from statsmodels.distributions.empirical_distribution import ECDF
 
 def get_data(src_dir, node):
-    print(src_dir + "/" + node + "/cpu.json")
     if os.path.exists(src_dir + "/" + node + "/cpu.json"):
         with open(src_dir + "/" + node + "/cpu.json", 'r') as r:
             try:
@@ -17,11 +16,19 @@ def get_data(src_dir, node):
                 sys.exit(1)
     return cpu_info
 
+def remove_error_data(l):
+    data_array = np.asarray(l)
+    list_mean = np.mean(l)
+    list_std = np.std(l)
+#     l = [x for x in l if (x > list_mean - 3*list_std)]
+#     l = [x for x in l if (x < list_mean + 3*list_std)]
+    l = [x for x in l if (x != 0)]
+    return l
 
 def draw_result(src_dir, target_dir, node):
     #get data
     save_hist_path = target_dir + "/cpu_hist_" + node + ".jpg"
-    save_kde_path = target_dir + "/cpu_kde_" + node + ".jpg"
+    save_cdf_path = target_dir + "/cpu_cdf_" + node + "_"
     cpu_info = get_data(src_dir, node)
 
     #draw histograme
@@ -34,17 +41,38 @@ def draw_result(src_dir, target_dir, node):
     plt.ylabel('Frequency', fontsize = 10)
     plt.title('Usage distribution', fontsize = 10)
     plt.savefig(save_hist_path)
-#     plt.show()
-    plt.cla()
 
-    #draw kde
-    df = pd.DataFrame.from_dict(cpu_info)
-#     print(df)
-    sns.kdeplot(data=df, clip=(0, 1000))
-    plt.xlabel('CPU usage %',fontsize = 10)
-    plt.ylabel('Frequency', fontsize = 10)
-    plt.title('Usage distribution', fontsize = 10)
-    plt.savefig(save_kde_path)
+    # draw cdf
+
+# ===  if you want to plot cdfs of different strategies in one plot
+#     plt.cla()
+#     for exp_name in cpu_info:
+#         exp_data = cpu_info[exp_name]
+#         ecdf = ECDF(exp_data)
+#         x = np.linspace(min(exp_data), max(exp_data))
+#         y = ecdf(x)
+#         plt.step(x, y, label=exp_name)
+#
+#     plt.xlabel('CPU usage (%)',fontsize = 10)
+#     plt.ylabel('CDF', fontsize = 10)
+#     plt.title('CPU usage CDF', fontsize = 10)
+#     plt.savefig(save_cdf_path+".jpg")
+
+# ==========================================
+# === if you want to plot cdfs of different strategies in different plots
+    for exp_name in cpu_info:
+        plt.cla()
+        exp_data = cpu_info[exp_name]
+        exp_data = remove_error_data(exp_data)
+        ecdf = ECDF(exp_data)
+        x = np.linspace(min(exp_data), max(exp_data))
+        y = ecdf(x)
+        plt.step(x, y, label=exp_name)
+        plt.legend(loc = 'best')
+        plt.xlabel('CPU usage (%)', fontsize = 10)
+        plt.ylabel('CDF', fontsize = 10)
+        plt.title('CPU usage CDF', fontsize = 10)
+        plt.savefig(save_cdf_path + exp_name + ".jpg")
     return
 
 def main(src_dir, target_dir):
