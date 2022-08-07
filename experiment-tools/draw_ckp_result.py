@@ -49,18 +49,19 @@ def draw_result(src_dir, target_dir):
             # draw cdf
 
 # ===  if you want to plot cdfs of different strategies in one plot
-#             plt.cla()
-#             for exp_name in key_info:
-#                 exp_data = key_info[exp_name]
-#                 ecdf = ECDF(exp_data)
-#                 x = np.linspace(min(exp_data), max(exp_data))
-#                 y = ecdf(x)
-#                 plt.step(x, y, label=exp_name)
-#
-#             plt.xlabel(key,fontsize = 10)
-#             plt.ylabel('CDF', fontsize = 10)
-#             plt.title(key +' CDF', fontsize = 10)
-#             plt.savefig(save_cdf_path+".jpg")
+            plt.cla()
+            for exp_name in key_info:
+                exp_data = key_info[exp_name]
+                ecdf = ECDF(exp_data)
+                x = np.linspace(min(exp_data), max(exp_data))
+                y = ecdf(x)
+                plt.step(x, y, label=exp_name)
+
+            plt.legend(loc = 'best')
+            plt.xlabel(key,fontsize = 10)
+            plt.ylabel('CDF', fontsize = 10)
+            plt.title(key +' CDF', fontsize = 10)
+            plt.savefig(save_cdf_path+".jpg")
 # ==========================================
 # === if you want to plot cdfs of different strategies in different plots
 

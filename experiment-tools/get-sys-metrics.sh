@@ -30,6 +30,7 @@ get_cpu_usage(){
 
 while(( $count <= $REPEAT))
 do
+  echo "fetch cpu: $count"
   count=$(( $count + 1))
   sleep "$METRICS_FETCH_INTERVAL"
 #  get_threads_num $pid

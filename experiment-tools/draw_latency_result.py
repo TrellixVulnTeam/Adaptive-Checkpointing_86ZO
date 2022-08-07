@@ -44,18 +44,19 @@ def draw_result(src_dir, target_dir):
     #draw cdf
 #
 # ===  if you want to plot cdfs of different strategies in one plot
-#     plt.cla()
-#     for exp_name in latency_info:
-#         exp_data = latency_info[exp_name]
-#         ecdf = ECDF(exp_data)
-#         x = np.linspace(min(exp_data), max(exp_data))
-#         y = ecdf(x)
-#         plt.step(x, y, label=exp_name)
-#
-#     plt.xlabel('Latency (ms)',fontsize = 10)
-#     plt.ylabel('CDF', fontsize = 10)
-#     plt.title('Latency CDF', fontsize = 10)
-#     plt.savefig(save_cdf_path+".jpg")
+    plt.cla()
+    for exp_name in latency_info:
+        exp_data = latency_info[exp_name]
+        ecdf = ECDF(exp_data)
+        x = np.linspace(min(exp_data), max(exp_data))
+        y = ecdf(x)
+        plt.step(x, y, label=exp_name)
+
+    plt.legend(loc = 'best')
+    plt.xlabel('Latency (ms)',fontsize = 10)
+    plt.ylabel('CDF', fontsize = 10)
+    plt.title('Latency CDF', fontsize = 10)
+    plt.savefig(save_cdf_path+".jpg")
 
 # ===============================================
 # if you want to plot cdfs of different strategies in different plots

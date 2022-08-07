@@ -236,7 +236,7 @@ def main(job_id, interval, total_time):
 
     fail_count = 0
     for i in range(0, repeat):
-        time.sleep(interval)
+        print("fetch flink data: " + repeat)
         jobs_details = flink.list_jobs()
         jobs_lists_status = jobs_details['jobs']
         for job_status in jobs_lists_status:
@@ -264,6 +264,7 @@ def main(job_id, interval, total_time):
                 checkpoint_store_info[fetch_key] = checkpoint_all_details[fetch_key]
             checkpoints_info[i] = checkpoint_store_info
         last_record_checkpoint_id = latest_checkpoint_id
+        time.sleep(interval)
 
     current_all_checkpoints = flink.get_all_checkpoints(job_id)
     checkpoints_summary_info = {}
