@@ -2,20 +2,22 @@ import os
 import sys
 import json
 import shutil
+import random
 
 class FileParser:
 
-    def __init__(self, src_dir, target_dir, exp_type):
+    def __init__(self, src_dir, target_dir, exp_name):
         self._src_dir = src_dir
         self._target_dir = target_dir
-        self._exp_type = exp_type
+        self._exp_name = exp_name
 
-    def parse_log(self):
+    def parse_latency(self):
         '''
-        file format
+        latency file format
         {
-            "base": [30, 123, 234, ...]  // latency_value
-            "new": [...]
+            "exp_name": [30, 123, 234, ...]  // latency_value
+            "exp_name": [...]
+            ...
         }
         '''
 
@@ -39,38 +41,53 @@ class FileParser:
                 latency = int(line[second_pos+1:third_pos])
                 latency_record.append(latency)
 
-        exp_info[self._exp_type] = latency_record
-        with open(self._target_dir + "/latency.json", "w") as w:
+        exp_info[self._exp_name] = latency_record
+        exp_info = self.truncate_lists(exp_info)
+        target_path = self._target_dir+"/latency.json"
+        with open(target_path, 'w') as w:
             json.dump(exp_info, w, indent=4, separators=(',', ':'))
 
-    def copy_files(self):
-        node_list = os.listdir(self._src_dir+"/sys_metrics")
-        for node in node_list:
-            os.mkdir(self._target_dir+node)
-            shutil.copyfile(self._src_dir+"/sys_metrics/"+node+"/cpu_record.txt", self._target_dir+"/"+node+"/"+self._exp_type)
-            shutil.copyfile(self._src_dir+"/sys_metrics/"+node+"/disk_record.txt", self._target_dir+"/"+node+"/"+self._exp_type)
-            shutil.copyfile(self._src_dir+"/sys_metrics/"+node+"/thread_num_record.txt", self._target_dir+"/"+node+"/"+self._exp_type)
-
-    def parse_metrics(self):
+    def parse_cpu(self):
         '''
-        file format
+        cpu file format
+        {
+            "exp_name": [10.2, 3.1, ...]
+            "exp_name": [...]
+            ...
+        }
+        '''
+        node_list = os.listdir(self._src_dir+"/sys-metrics")
+        for node in node_list:
+            exp_info = {}
+            if not os.path.exists(self._target_dir+"/"+node):
+                os.mkdir(self._target_dir+"/"+node)
+            if os.path.exists(self._target_dir+"/"+node+"/cpu.json"):
+                with open(self._target_dir+"/"+node+"/cpu.json", 'r') as r:
+                    try:
+                        exp_info = json.load(r)
+                    except Exception as e:
+                        print("Exception", e)
+                        sys.exit(1)
+            cpu_record = []
+            for line in open(self._src_dir+"/sys-metrics/"+node+"/cpu_record.txt", 'r'):
+                value = float(line)
+                cpu_record.append(value)
+            exp_info[self._exp_name] = cpu_record
+            target_path = self._target_dir+"/"+node+"/cpu.json"
+            with open(target_path, 'w') as w:
+                json.dump(exp_info, w, indent=4, separators=(',', ':'))
+
+
+    def parse_thr(self):
+        '''
+        throughput file format
         {
             "task_name": {
-                "exp_type": {
-                    "bytes_thr":[],
-                    "num_thr":[]
-                },
+                "exp_name": [187, 177, ]
+                "exp_name": [...]
                 ...
             },
-            "checkpoints": {
-                "exp_type": {
-                    "end_to_end_duration": [],
-                    "state_size": [],
-                    "average_duration": 30,
-                    "average_size": 3000
-                },
-                ...
-            }
+            ...
         }
         '''
         tasks_data = {}
@@ -81,79 +98,127 @@ class FileParser:
                 print("Exception", e)
                 sys.exit(1)
             for key in metrics_info:
-                if key != 'Checkpoints':
+                if key != 'checkpoints':
                     task_data = {}
-                    exp_data = {}
                     task = metrics_info[key]
                     task_name = task['name']
-                    task_bytes_thr = task['0.numBytesInPerSecond']
-                    task_num_thr = task['0.numRecordsInPerSecond']
-                    if os.path.exists(self._target_dir + "/metrics.json"):
-                        with open(self._target_dir + "/metrics.json", 'r') as r1:
+                    throughput_record = task['0.numBytesInPerSecond']
+#                     task_num_thr = task['0.numRecordsInPerSecond']
+                    if os.path.exists(self._target_dir + "/throughput.json"):
+                        with open(self._target_dir + "/throughput.json", 'r') as r1:
                             try:
                                 task_data = json.load(r1)[task_name]
                             except Exception as e:
                                 print("Exception", e)
                                 sys.exit(1)
 
-                    exp_data['bytes_thr'] = task_bytes_thr
-                    exp_data['num_thr'] = task_num_thr
-                    task_data[self._exp_type] = exp_data
+                    task_data[self._exp_name] = throughput_record
                     tasks_data[task_name] = task_data
-                else:
-                    # todo: parse checkpoints info here
-                    checkpoint_data = {}
-                    exp_data = {}
-                    checkpoints_info = metrics_info['checkpoints']
-                    checkpoints_duration_list = []
-                    checkpoints_size_list = []
-                    for checkpoint_id in checkpoints_info:
-                        if checkpoint_id != 'summary':
-                            checkpoints_duration_list.append(checkpoints_info[checkpoint_id]['end_to_end_duration'])
-                            checkpoints_size_list.append(checkpoints_info[checkpoint_id]['state_size'])
-                        else:
-                            average_duration = checkpoints_info[checkpoint_id]['end_to_end_duration']
-                            average_size = checkpoints_info[checkpoint_id]['state_size']
 
-                    if os.path.exists(self._target_dir + "/metrics.json"):
-                        with open(self._target_dir + "/metrics.json", 'r') as r1:
-                            try:
-                                checkpoint_data = json.load(r1)['checkpoints']
-                            except Exception as e:
-                                print("Exception", e)
-                                sys.exit(1)
-                    exp_data['end_to_end_duration'] = checkpoints_duration_list
-                    exp_data['state_size'] = checkpoints_size_list
-                    exp_data['average_duration'] = average_duration
-                    exp_data['average_size'] average_size
-                    checkpoint_data[self._exp_type] = exp_data
-                    tasks_data['checkpoints'] = checkpoint_data
-
-        with open(self._target_dir + "/metrics.json", "w") as w:
+        with open(self._target_dir + "/throughput.json", "w") as w:
             json.dump(tasks_data, w, indent=4, separators=(',', ':'))
 
+    def parse_ckp(self):
+        '''
+        checkpoint file format:
+        {
+            "end_to_end_duration": {
+                "exp_name":[],
+                ...
+            },
+            "state_size": {
+                "exp_name":[],
+                ...
+            },
+            "average_duration": {
+                "exp_name": 100,
+                ...
+            },
+            "average_size": {
+                "exp_name": 1000,
+                ...
+            }
+        }
+        '''
+
+        checkpoint_data = {}
+        checkpoints_info = {}
+        with open(self._src_dir+"/metrics_record.json", 'r') as r:
+            try:
+                metrics_info = json.load(r)
+            except Exception as e:
+                print("Exception", e)
+                sys.exit(1)
+            checkpoints_info = metrics_info['checkpoints']
+
+            checkpoints_duration_list = []
+            checkpoints_size_list = []
+            for checkpoint_id in checkpoints_info:
+                if checkpoint_id != 'summary':
+                    checkpoints_duration_list.append(checkpoints_info[checkpoint_id]['end_to_end_duration'])
+                    checkpoints_size_list.append(checkpoints_info[checkpoint_id]['state_size'])
+                else:
+                    average_duration = checkpoints_info[checkpoint_id]['end_to_end_duration']
+                    average_size = checkpoints_info[checkpoint_id]['state_size']
+
+        checkpoints_duration = {}
+        checkpoints_size = {}
+        checkpoint_avg_dur = {}
+        checkpoint_avg_size = {}
+        if os.path.exists(self._target_dir + "/checkpoints.json"):
+            with open(self._target_dir + "/checkpoints.json", 'r') as r:
+                try:
+                    checkpoint_data = json.load(r)
+                except Exception as e:
+                    print("Exception", e)
+                    sys.exit(1)
+            checkpoints_duration = checkpoint_data['end_to_end_duration']
+            checkpoints_size = checkpoint_data['state_size']
+            checkpoint_avg_dur = checkpoint_data['average_duration']
+            checkpoint_avg_size = checkpoint_data['average_size']
+
+        checkpoints_duration[self._exp_name] = checkpoints_duration_list
+        checkpoints_duration = self.truncate_lists(checkpoints_duration)
+        checkpoint_data['end_to_end_duration'] = checkpoints_duration
+        checkpoints_size[self._exp_name] = checkpoints_size_list
+        checkpoints_size = self.truncate_lists(checkpoints_size)
+        checkpoint_data['state_size'] = checkpoints_size
+        checkpoint_avg_dur[self._exp_name] = average_duration
+        checkpoint_data['average_duration'] = checkpoint_avg_dur
+        checkpoint_avg_size[self._exp_name] = average_size
+        checkpoint_data['average_size'] = checkpoint_avg_size
+
+        with open(self._target_dir + "/checkpoints.json", "w") as w:
+            json.dump(checkpoint_data, w, indent=4, separators=(',', ':'))
+
+    def truncate_lists(self, exp_info):
+        min_size = sys.maxsize
+        for value in exp_info.values():
+            min_size = min(len(value), min_size)
+        for exp_name in exp_info:
+            while (len(exp_info[exp_name]) > min_size):
+                 exp_info[exp_name].pop(random.randrange(len(exp_info[exp_name])))
+        return exp_info
 
 
     def process_data(self):
-        parse_log()
-        copy_files()
-        parse_metrics()
+        self.parse_latency()
+        self.parse_cpu()
+        self.parse_thr()
+        self.parse_ckp()
 
 
-def main(target_path, src_path, exp_type):
-    file_parser = FileParser(src_path, target_path, exp_type)
+def main(target_path, src_path, exp_name):
+    file_parser = FileParser(src_path, target_path, exp_name)
     file_parser.process_data()
+    shutil.rmtree(src_path)
 
 
-if __name__ = "__main__":
-    target_path = "~/data"
+if __name__ == "__main__":
     query_id = sys.argv[1]
-    exp_type = sys.argv[2]
-    src_path = "~/Adaptive-Checkpointing/experiment-tools/" + query_id
-    main(target_path, src_path, exp_type)
-
-
-
-
-
-
+    exp_name = sys.argv[2]
+    target_path = sys.argv[3]
+    src_path = "./" + query_id
+    if not os.path.exists(target_path):
+        os.makedirs(target_path)
+    main(target_path, src_path, exp_name)

@@ -30,6 +30,7 @@ ssh "ubuntu@$KAFKAIP" "cd kafka/ && ./clear-kafka-topics.sh $KAFKA"
 echo "CHECKPOINT_DIR: $CHECKPOINT_DIR"
 
 QUERY=$1
+DIR_PATH=$2
 QUERY_TO_RUN=""
 withTwoSource=false
 case $QUERY in
@@ -53,6 +54,9 @@ case $QUERY in
      ;;
 esac
 echo  "RUN QUERY: $QUERY_TO_RUN"
+
+EXP_NAME="$EXP_TYPE"_"$QUERY_TO_RUN"_"$CKP_ADAPTER_RECOVERY"_"$CKP_ADAPTER_ALLOW_RANGE"_"$CKP_ADAPTER_CHECK_INTERVAL"
+echo "EXP_NAME: $EXP_NAME"
 
 # submit Query JOB
 FLINK_TARGET="$FLINKROOT"/flink-dist/target/flink-1.14.0-bin/flink-1.14.0
@@ -220,21 +224,26 @@ fi
 echo "QUERY_ID: $QUERY_ID"
 echo "FETCH_INTERVAL: $FETCH_INTERVAL"
 echo "FETCH_TOTAL_TIME: $FETCH_TOTAL_TIME"
-#
-#echo "========= start collecting metrics ========="
-#cd "$FLINKROOT"/experiment-tools/ || (echo "cd fail" && exit 1)
-#python3 flink_connector.py --job_id "$QUERY_ID" --interval "$FETCH_INTERVAL" --total_time "$FETCH_TOTAL_TIME" &
-## collect system metrics
-#. connect-for-metrics.sh "$QUERY_ID" "$FETCH_TOTAL_TIME" "$METRICS_FETCH_INTERVAL" &
-#wait
-#
-## collect log
-#echo "========== start collecting logs =========="
-#. "$bin"/collectlog.sh "$QUERY_ID"
-#
-## clear all jobs and topics
-#echo "=========== start clearing jobs and kafka topics ============="
-#cd "$FLINKROOT"/experiment-tools/ || (echo "cd fail" && exit 1)
-#. clear-prev-jobs.sh
-#cd "$FLINKROOT"/experiment-tools/ || (echo "cd fail" && exit 1)
-#. clear-kafka-topics.sh
+
+echo "========= start collecting metrics ========="
+cd "$FLINKROOT"/experiment-tools/ || (echo "cd fail" && exit 1)
+python3 flink_connector.py --job_id "$QUERY_ID" --interval "$FETCH_INTERVAL" --total_time "$FETCH_TOTAL_TIME" &
+# collect system metrics
+. connect-for-metrics.sh "$QUERY_ID" "$FETCH_TOTAL_TIME" "$METRICS_FETCH_INTERVAL" &
+wait
+
+# collect log
+echo "========== start collecting logs =========="
+. "$bin"/collectlog.sh "$QUERY_ID"
+cd "$FLINKROOT"/experiment-tools/ || (echo "cd fail" && exit 1)
+
+# collect all the files
+
+python3 collect_data.py "$QUERY_ID" "$EXP_NAME" "$DIR_PATH"
+
+# clear all jobs and topics
+echo "=========== start clearing jobs and kafka topics ============="
+cd "$FLINKROOT"/experiment-tools/ || (echo "cd fail" && exit 1)
+. clear-prev-jobs.sh
+cd "$FLINKROOT"/experiment-tools/ || (echo "cd fail" && exit 1)
+. clear-kafka-topics.sh

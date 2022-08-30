@@ -222,13 +222,6 @@ def main(job_id, interval, total_time):
     job_plan = flink.get_job_plan(job_id)
     nodes_info = job_plan['plan']['nodes']
 
-#     print(flink.get_job_details(job_id))
-#     print("=======================")
-    print(flink.get_job_plan(job_id))
-    print("=========================")
-    print(flink.get_task_status(job_id, '6108a2b01f8518cedda14db837358577'))
-    print("=======================")
-#     print(flink.get_cluster())
     number_bytes_in_per_second_query = ""
     all_queries_keys = ["0.numBytesInPerSecond", "0.numRecordsInPerSecond"]
     checkpoint_fetch_keys = ["end_to_end_duration", "state_size"]
@@ -243,15 +236,13 @@ def main(job_id, interval, total_time):
 
     fail_count = 0
     for i in range(0, repeat):
-        time.sleep(interval)
+        print("fetch flink data: " + repeat)
         jobs_details = flink.list_jobs()
         jobs_lists_status = jobs_details['jobs']
         for job_status in jobs_lists_status:
             if job_status['id'] == job_id:
                 status = job_status['status']
                 break
-        if status == "CANCELED" or status == "FAILED":
-            break
 
         for task in job_details['vertices']:
             task_id = task['id']
@@ -273,6 +264,7 @@ def main(job_id, interval, total_time):
                 checkpoint_store_info[fetch_key] = checkpoint_all_details[fetch_key]
             checkpoints_info[i] = checkpoint_store_info
         last_record_checkpoint_id = latest_checkpoint_id
+        time.sleep(interval)
 
     current_all_checkpoints = flink.get_all_checkpoints(job_id)
     checkpoints_summary_info = {}

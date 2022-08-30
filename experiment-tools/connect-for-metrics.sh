@@ -35,3 +35,10 @@ do
   scp -r "$ip":"$QUERY_ID"/ "$FLINKROOT"/experiment-tools/"$QUERY_ID"/sys-metrics/"$ip"
 done
 
+echo "========= delete metrics files in flink nodes ========="
+cd "$FLINKROOT"/experiment-tools || (echo cd flink root fails && exit 1)
+for ip in "${iplist[@]}"
+do
+  ssh "$ip" "rm -rf \"$QUERY_ID\""
+done
+
