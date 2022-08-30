@@ -19,6 +19,6 @@
 <configuration>
 	<property>
 		<name>dfs.replication</name>
-		<value>4</value>
+		<value>NUM_TO_BE_REPLACED</value>
 	</property>
 </configuration>

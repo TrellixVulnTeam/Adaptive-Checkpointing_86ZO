@@ -13,9 +13,13 @@ while IFS= read -r line; do
   iplist+=("$line")
 done < workers
 
+#change hdfs-site.xml
+sed -i 's/NUM_TO_BE_REPLACED/'"${#iplist[@]}"'/g' "$FLINKROOT"/hadoop-scripts/hdfs-site.xml
+
 #configure workers
 # delete and recreate the data folder for each vm
 # change all the workers file in each vm
+# change all the hdfs-site.xml files in each vm
 for ip in "${iplist[@]}"
 do
   if [[ $ip != $localip ]]; then
@@ -26,6 +30,7 @@ do
     ssh "$ip" "mkdir "$HADOOP_HOME"/hadoop_data/hdfs/namenode"
     ssh "$ip" "mkdir "$HADOOP_HOME"/hadoop_data/hdfs/datanode"
     scp -r "$FLINKROOT"/hadoop-scripts/workers $ip":"$HADOOP_CONF_DIR"/workers
+    scp -r "$FLINKROOT"/hadoop-scripts/hdfs-site.xml $ip":"$HADOOP_HOME"/etc/hadoop/hdfs-site.xml
   fi
 done
 
