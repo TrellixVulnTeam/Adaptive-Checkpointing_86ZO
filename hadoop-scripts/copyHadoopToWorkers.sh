@@ -2,8 +2,8 @@
 iplist=()
 while IFS= read -r line; do
   ip="$line"
-  printf '%s\n' $ip
   if [[ (! -z "$ip") && ($ip != "flinknode-1") ]]; then
+    printf '%s\n' $ip
     iplist+=("$ip")
   fi
 done < workers
