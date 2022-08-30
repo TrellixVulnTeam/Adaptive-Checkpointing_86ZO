@@ -1,4 +1,5 @@
 #!/bin/bash
+localip=$(hostname -I)
 iplist=()
 while IFS= read -r line; do
   ip="$line"
@@ -12,6 +13,6 @@ for ip in "${iplist[@]}"
 do
   if [[ $ip != $localip ]]; then
     echo "copy hadoop to $ip"
-    scp $HADOOP_HOME $ip:/usr/local/
+    scp -r $HADOOP_HOME $ip:/usr/local/
   fi
 done
