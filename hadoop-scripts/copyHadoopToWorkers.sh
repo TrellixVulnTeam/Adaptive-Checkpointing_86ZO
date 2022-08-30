@@ -11,7 +11,7 @@ done < workers
 
 for ip in "${iplist[@]}"
 do
-  if [[ $ip != $localip ]]; then
+  if [[ $ip != "flinknode-1" ]]; then
     echo "copy hadoop to $ip"
     scp -r $HADOOP_HOME $ip:/usr/local/
   fi
