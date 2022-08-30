@@ -1,8 +1,6 @@
 #!/bin/bash
 FLINKROOT=$(cd ..; pwd)
-HADOOP_HOME=/usr/local/hadoop
-HADOOP_CONF_DIR=/usr/local/hadoop/etc/hadoop
-
+# $HADOOP_HOME and $HADOOP_CONF_DIR export by hadoop
 # stop all the nodes
 . $HADOOP_HOME/sbin/stop-all.sh
 
