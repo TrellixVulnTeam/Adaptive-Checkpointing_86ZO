@@ -27,7 +27,7 @@ do
     ssh "$ip" "rm -r "$HADOOP_HOME"/hadoop_data/hdfs/datanode"
     ssh "$ip" "mkdir "$HADOOP_HOME"/hadoop_data/hdfs/namenode"
     ssh "$ip" "mkdir "$HADOOP_HOME"/hadoop_data/hdfs/datanode"
-    scp -r "$HADOOP_CONF_DIR"/workers "$ip":"$HADOOP_CONF_DIR"/workers
+    scp -r "$FLINKROOT"/hadoop-scripts/workers $ip":"$HADOOP_CONF_DIR"/workers
   fi
 done
 
