@@ -22,7 +22,6 @@ sed -i 's/NUM_TO_BE_REPLACED/'"${#iplist[@]}"'/g' "$FLINKROOT"/hadoop-scripts/hd
 # change all the hdfs-site.xml files in each vm
 for ip in "${iplist[@]}"
 do
-  if [[ $ip != "flinknode-1" ]]; then
     printf '%s\n' '-----------------------------------------------------'
     echo "configuring on $ip"
     ssh "$ip" "rm -r "$HADOOP_HOME"/hadoop_data/hdfs/namenode"
@@ -31,7 +30,6 @@ do
     ssh "$ip" "mkdir "$HADOOP_HOME"/hadoop_data/hdfs/datanode"
     scp -r "$FLINKROOT"/hadoop-scripts/workers "$ip":"$HADOOP_CONF_DIR"/workers
     scp -r "$FLINKROOT"/hadoop-scripts/hdfs-site.xml "$ip":"$HADOOP_HOME"/etc/hadoop/hdfs-site.xml
-  fi
 done
 
 hdfs namenode -format
