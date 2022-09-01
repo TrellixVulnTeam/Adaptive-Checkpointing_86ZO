@@ -1,7 +1,7 @@
 # experimental configurable parameters for a job
 GROUP="adaptive"
 EXCHANGE_RAGE="0.82F"
-HDFS_DIR="hdfs://150.136.171.58:9000/checkpoint"
+HDFS_DIR="hdfs://flinknode-1:9000/checkpoint"
 MEMORY_DIR="file:///home/ubuntu/Adaptive-Checkpointing-Storage/Checkpoint"
 CHECKPOINT_DIR=$HDFS_DIR
 INCREMENTAL_CHECKPOINTS="false"
