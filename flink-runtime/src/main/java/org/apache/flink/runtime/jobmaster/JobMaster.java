@@ -490,10 +490,10 @@ public class JobMaster extends PermanentlyFencedRpcEndpoint<JobMasterId>
     @Override
     public CompletableFuture<Acknowledge> submitTaskManagerRunningState(
             final TaskManagerRunningState taskManagerRunningState) {
-        log.info("jobMaster received data!");
+        // log.info("jobMaster received data!");
         if (checkpointAdapter != null
                 && checkpointAdapter.dealWithMessageFromOneTaskExecutor(taskManagerRunningState)) {
-            log.info("JobMaster Dealt successfully");
+            // log.info("JobMaster Dealt successfully");
             return CompletableFuture.completedFuture(Acknowledge.get());
         }
         JobMasterException e =
