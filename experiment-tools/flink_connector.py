@@ -236,7 +236,7 @@ def main(job_id, interval, total_time):
 
     fail_count = 0
     for i in range(0, repeat):
-        print("fetch flink data: " + repeat)
+        print("fetch flink data: " + str(i))
         jobs_details = flink.list_jobs()
         jobs_lists_status = jobs_details['jobs']
         for job_status in jobs_lists_status:

@@ -40,9 +40,9 @@ public class CheckpointAdapter {
             if (history.size() <= 0) {
                 return;
             }
-            log.info(
-                    interval
-                            + "ms passed, calculate a new period, if over allowRange change the checkpoint interval!");
+            // log.info(
+            // interval
+            // + "ms passed, calculate a new period, if over allowRange change the checkpoint interval!");
             // find bottleneck of all task. Map keeps the latest metrics
             List<Long> periods = new ArrayList<>(history.values());
             Collections.sort(periods, (x, y) -> (int) (x - y));

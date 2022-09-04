@@ -1351,16 +1351,16 @@ public class Task
 
         @Override
         public void run() {
-            LOG.info(interval + "ms passed, get metrics!");
+            // LOG.info(interval + "ms passed, get metrics!");
             TaskIOMetricGroup taskIOMetricGroup = metrics.getIOMetricGroup();
             Meter numRecordsInRate = taskIOMetricGroup.getNumRecordsInRate();
             double throughput = numRecordsInRate.getRate();
             double busyTimeMsPerSecond = taskIOMetricGroup.getBusyTimePerSecond();
             double idealProcessingRate = throughput * 1000 / busyTimeMsPerSecond;
-            LOG.info(
-                    "Get throughput {}, get ideal processing rate {}",
-                    throughput,
-                    idealProcessingRate);
+            // LOG.info(
+            //         "Get throughput {}, get ideal processing rate {}",
+            //         throughput,
+            //         idealProcessingRate);
 
             // 1. get exponential moving averages
             double thrAverage = EMA * throughput + (1 - EMA) * previousThrAverage;
