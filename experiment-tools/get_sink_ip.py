@@ -11,7 +11,7 @@ class Flink:
 
     '''
 
-    def __init__(self, endpoint="http://150.136.171.58:8081"):
+    def __init__(self, endpoint="http://128.31.26.144:8081"):
         self._endpoint = endpoint
 
     def get_endpoint(self):
@@ -48,7 +48,7 @@ def trancate_ip(taskmanager_id):
 
 def main(job_id):
     # first get task id by job plan (description = Latency Sink)
-    flink = Flink(endpoint="http://150.136.171.58:8081/")
+    flink = Flink(endpoint="http://128.31.26.144:8081/")
     job_plan = flink.get_job_plan(job_id)
     job_all_nodes = job_plan['plan']['nodes']
     for node in job_all_nodes:
