@@ -25,8 +25,6 @@ scp -r "$bin"/clear-kafka-topics.sh "ubuntu@$KAFKAIP":kafka/
 ssh "ubuntu@$KAFKAIP" "cd kafka/ && ./clear-kafka-topics.sh $KAFKA"
 
 # source config
-. "$bin"/config.sh
-. "$bin"/argsconfig.sh
 echo "CHECKPOINT_DIR: $CHECKPOINT_DIR"
 
 QUERY=$1
