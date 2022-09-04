@@ -40,9 +40,9 @@ public class CheckpointAdapter {
             if (history.size() <= 0) {
                 return;
             }
-            // log.info(
-            // interval
-            // + "ms passed, calculate a new period, if over allowRange change the checkpoint interval!");
+//            log.info(
+//                    interval
+//                            + "ms passed, calculate a new period, if over allowRange change the checkpoint interval!");
             // find bottleneck of all task. Map keeps the latest metrics
             List<Long> periods = new ArrayList<>(history.values());
             Collections.sort(periods, (x, y) -> (int) (x - y));
@@ -95,7 +95,7 @@ public class CheckpointAdapter {
 
         double maxData = (double) (recoveryTime / 1000) * ideal; // ideal: records per second
         long newPeriod = (long) (maxData / inputRate); // (records / million seconds)
-        log.info("New Period: " + newPeriod);
+        // log.info("New Period: " + newPeriod);
 
         // Get rid of extreme data
         if (newPeriod == 0 || newPeriod == Long.MAX_VALUE) {

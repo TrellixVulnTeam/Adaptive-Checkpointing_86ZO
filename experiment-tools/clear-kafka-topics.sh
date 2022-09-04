@@ -23,8 +23,10 @@ done < $STORAGE_FILE
 
 for topic in "${topiclist[@]}"
 do
-  echo "deleting topic: $topic"
-  ./bin/kafka-topics.sh --bootstrap-server "$KAFKA" --delete --topic "$topic"
+  if [[ $ip != "__consumer_offsets" ]]; then
+    echo "deleting topic: $topic"
+    ./bin/kafka-topics.sh --bootstrap-server "$KAFKA" --delete --topic "$topic"
+  fi
 done
 
 # 3. remove alltopics

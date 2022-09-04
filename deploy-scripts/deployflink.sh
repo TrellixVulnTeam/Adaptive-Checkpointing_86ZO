@@ -2,10 +2,10 @@
 FLINKROOT=$(cd ..; pwd)
 echo "FLINKROOT: $FLINKROOT"
 
-localip=$(hostname -I)
+#localip=$(hostname -I)
 # localip=${$localip//\n/}
 
-printf '%s\n' $localip
+#printf '%s\n' $localip
 
 iplist=()
 
@@ -32,7 +32,7 @@ rm -rf "$FLINKROOT"/flink-dist/target/flink-1.14.0-bin/flink-1.14.0/examples
 
 for ip in "${iplist[@]}"
 do
-  if [[ $ip != $localip ]]; then
+  if [[ $ip != "flinknode-1" ]]; then
     printf '%s\n' '-----------------------------------------------------'
     echo "deploying on $ip"
     ssh "$ip" "rm -rf "$FLINKROOT""

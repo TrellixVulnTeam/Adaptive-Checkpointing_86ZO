@@ -2,7 +2,7 @@
 FLINKROOT=$(cd ..; pwd)
 echo "FLINKROOT: $FLINKROOT"
 USAGE="Usage: start-exp.sh (1/3/5/8)"
-KAFKAIP="128.31.25.127"
+KAFKAIP="10.0.0.171"
 KAFKA="$KAFKAIP:9092"
 JOBID_REGEX='[0-9a-fA-F]\{32\}'
 
@@ -25,8 +25,6 @@ scp -r "$bin"/clear-kafka-topics.sh "ubuntu@$KAFKAIP":kafka/
 ssh "ubuntu@$KAFKAIP" "cd kafka/ && ./clear-kafka-topics.sh $KAFKA"
 
 # source config
-. "$bin"/config.sh
-. "$bin"/argsconfig.sh
 echo "CHECKPOINT_DIR: $CHECKPOINT_DIR"
 
 QUERY=$1

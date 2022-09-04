@@ -1357,10 +1357,10 @@ public class Task
             double throughput = numRecordsInRate.getRate();
             double busyTimeMsPerSecond = taskIOMetricGroup.getBusyTimePerSecond();
             double idealProcessingRate = throughput * 1000 / busyTimeMsPerSecond;
-            // LOG.info(
-            //         "Get throughput {}, get ideal processing rate {}",
-            //         throughput,
-            //         idealProcessingRate);
+//            LOG.info(
+//                    "Get throughput {}, get ideal processing rate {}",
+//                    throughput,
+//                    idealProcessingRate);
 
             // 1. get exponential moving averages
             double thrAverage = EMA * throughput + (1 - EMA) * previousThrAverage;
