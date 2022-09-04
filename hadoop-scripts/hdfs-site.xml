@@ -21,4 +21,16 @@
 		<name>dfs.replication</name>
 		<value>NUM_TO_BE_REPLACED</value>
 	</property>
+	<property>
+		<name>dfs.namenode.name.dir</name>
+		<value>file:///usr/local/hadoop/hadoop_data/hdfs/namenode</value>
+	</property>
+	<property>
+		<name>dfs.datanode.data.dir</name>
+		<value>file:///usr/local/hadoop/hadoop_data/hdfs/datanode</value>
+	</property>
+	<property>
+		<name>dfs.webhdfs.enabled</name>
+		<value>true</value>
+	</property>
 </configuration>
