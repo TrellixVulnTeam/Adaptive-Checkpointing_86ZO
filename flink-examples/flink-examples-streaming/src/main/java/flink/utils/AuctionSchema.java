@@ -16,7 +16,7 @@ public class AuctionSchema implements DeserializationSchema<Auction>, Serializat
         try {
             // according to Bid.toString()
             auction = NexmarkUtils.MAPPER.readValue(message, Auction.class);
-            System.out.println(auction.toString());
+            // System.out.println(auction.toString());
         } catch (Exception e) {
             e.printStackTrace();
         }

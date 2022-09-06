@@ -16,7 +16,7 @@ public class PersonSchema implements DeserializationSchema<Person>, Serializatio
         try {
             // according to Bid.toString()
             person = NexmarkUtils.MAPPER.readValue(message, Person.class);
-            System.out.println(person.toString());
+            // System.out.println(person.toString());
         } catch (Exception e) {
             e.printStackTrace();
         }
