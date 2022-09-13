@@ -22,7 +22,7 @@ def draw_result(src_dir, target_dir):
     throughput_info = get_data(src_dir)
     for task in throughput_info:
         plt.cla()
-        save_line_path = target_dir + "/throughput_line_" + task + ".jpg"
+
         task_throughput = throughput_info[task]
 
         all_values = task_throughput.values()
@@ -41,6 +41,9 @@ def draw_result(src_dir, target_dir):
         plt.xlabel('time',fontsize = 10)
         plt.ylabel('Throughput (bytes/s)', fontsize = 10)
         plt.title('Throughput', fontsize = 10)
+        if '/' in task:
+            task = task.replace('/', '_')
+        save_line_path = target_dir + "/throughput_line_" + task + ".jpg"
         plt.savefig(save_line_path)
     return
 
