@@ -61,6 +61,7 @@ public class CheckpointAdapterConfig {
     }
 
     public void setCheckInterval(long checkInterval) {
+        if (checkInterval <= 0) checkInterval = 1; // reset illegal argument
         this.checkInterval = checkInterval;
     }
 
