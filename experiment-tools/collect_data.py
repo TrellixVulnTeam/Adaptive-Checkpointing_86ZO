@@ -91,6 +91,7 @@ class FileParser:
         }
         '''
         tasks_data = {}
+        bkps_data = {}
         with open(self._src_dir+"/metrics_record.json", 'r') as r:
             try:
                 metrics_info = json.load(r)
@@ -100,9 +101,11 @@ class FileParser:
             for key in metrics_info:
                 if key != 'checkpoints':
                     task_data = {}
+                    bkp_data = {}
                     task = metrics_info[key]
                     task_name = task['name']
                     throughput_record = task['0.numBytesInPerSecond']
+                    bkp_record = task['bkp_key'] # todo: bkp_key here
 #                     task_num_thr = task['0.numRecordsInPerSecond']
                     if os.path.exists(self._target_dir + "/throughput.json"):
                         with open(self._target_dir + "/throughput.json", 'r') as r1:
@@ -112,11 +115,23 @@ class FileParser:
                                 print("Exception", e)
                                 sys.exit(1)
 
+                    if os.path.exists(self._target_dir + "/backpressure.json"):
+                        with open(self._target_dir + "/backpressure.json", 'r') as r2:
+                            try:
+                                bkp_data = json.load(r2)[task_name]
+                            except Exception as e:
+                                print("Exception", e)
+                                sys.exit(1)
+
                     task_data[self._exp_name] = throughput_record
                     tasks_data[task_name] = task_data
+                    bkp_data[self._exp_name] = bkp_record
+                    bkps_data[task_name] = bkp_data
 
         with open(self._target_dir + "/throughput.json", "w") as w:
             json.dump(tasks_data, w, indent=4, separators=(',', ':'))
+        with open(self._target_dir + "/backpressure.json", "w") as w:
+            json.dump(bkps_data, w, indent=4, separators=(',', ':'))
 
     def parse_ckp(self):
         '''
