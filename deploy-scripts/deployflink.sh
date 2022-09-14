@@ -23,8 +23,10 @@ while IFS= read -r line; do
   ip="$line"
   printf '%s\n' $ip
   prev="" # filter same ip
-  if [ ! -z "$ip" ] && [ "$ip" != prev ]; then
-    iplist+=("$ip")
+  if [ ! -z "$ip" ]; then
+    if [ "$ip" != prev ]; then
+      iplist+=("$ip")
+    fi
     prev=ip;
   fi
 done < workers
