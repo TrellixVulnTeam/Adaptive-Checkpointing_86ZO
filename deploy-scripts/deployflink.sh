@@ -24,10 +24,10 @@ while IFS= read -r line; do
   ip="$line"
   printf '%s\n' $ip
   if [ ! -z "$ip" ]; then
-    if [ "$ip" != prev ]; then
+    if [ "$ip" != "$prev" ]; then
       iplist+=("$ip")
     fi
-    prev=ip;
+    prev=$ip;
   fi
 done < workers
 
@@ -36,7 +36,7 @@ rm -rf "$FLINKROOT"/flink-dist/target/flink-1.14.0-bin/flink-1.14.0/examples
 
 for ip in "${iplist[@]}"
 do
-  if [[ $ip != "flinknode-1" ]]; then
+  if [ "$ip" != "flinknode-1" ]; then
     printf '%s\n' '-----------------------------------------------------'
     echo "deploying on $ip"
     ssh "$ip" "rm -rf "$FLINKROOT""

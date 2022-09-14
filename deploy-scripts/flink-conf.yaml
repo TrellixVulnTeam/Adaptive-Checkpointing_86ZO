@@ -30,7 +30,7 @@
 # automatically configure the host name based on the hostname of the node where the
 # JobManager runs.
 
-jobmanager.rpc.address: 129.114.109.235
+jobmanager.rpc.address: flinknode-1
 
 # The RPC port where the JobManager is reachable.
 
