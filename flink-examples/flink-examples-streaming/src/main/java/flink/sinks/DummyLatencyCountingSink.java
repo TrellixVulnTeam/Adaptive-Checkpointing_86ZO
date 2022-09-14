@@ -22,12 +22,21 @@ import org.apache.flink.streaming.api.functions.sink.SinkFunction;
 import org.apache.flink.streaming.api.operators.StreamSink;
 import org.apache.flink.streaming.runtime.streamrecord.LatencyMarker;
 
+import org.apache.flink.streaming.runtime.streamrecord.StreamRecord;
+
 import org.slf4j.Logger;
 
 /** A Sink that drops all data and periodically emits latency measurements */
 public class DummyLatencyCountingSink<T> extends StreamSink<T> {
 
     private final Logger logger;
+
+    @Override
+    public void processElement(StreamRecord<T> element) throws Exception {
+        // super.processElement(element);
+        // refer to KafkaTCase.java
+        logger.warn("%{}","record id", element.toString());
+    }
 
     public DummyLatencyCountingSink(Logger log) {
         super(
