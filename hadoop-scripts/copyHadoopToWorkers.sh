@@ -10,7 +10,7 @@ done < workers
 for ip in "${iplist[@]}"
 do
   echo "copy hadoop to $ip"
-  scp -r ~/.bashrc "ip":~/
+  scp -r ~/.bashrc "$ip":~/
   ssh "$ip" "source  ~/.bashrc"
   scp -r "$HADOOP_HOME" "$ip":/usr/local
 done
