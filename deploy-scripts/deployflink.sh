@@ -22,8 +22,10 @@ cd "$FLINKROOT"/deploy-scripts/
 while IFS= read -r line; do
   ip="$line"
   printf '%s\n' $ip
-  if [ ! -z "$ip" ]; then
+  prev="" # filter same ip
+  if [ ! -z "$ip" ] && [ "$ip" != prev ]; then
     iplist+=("$ip")
+    prev=ip;
   fi
 done < workers
 
