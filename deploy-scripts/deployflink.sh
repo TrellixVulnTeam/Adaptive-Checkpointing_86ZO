@@ -19,10 +19,10 @@ rm "$FLINKROOT"/build-target/log/*
 
 # deploy workers
 cd "$FLINKROOT"/deploy-scripts/
+prev="" # filter same ip
 while IFS= read -r line; do
   ip="$line"
   printf '%s\n' $ip
-  prev="" # filter same ip
   if [ ! -z "$ip" ]; then
     if [ "$ip" != prev ]; then
       iplist+=("$ip")
