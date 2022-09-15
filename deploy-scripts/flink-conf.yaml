@@ -30,7 +30,7 @@
 # automatically configure the host name based on the hostname of the node where the
 # JobManager runs.
 
-jobmanager.rpc.address: 129.114.109.235
+jobmanager.rpc.address: flinknode-1
 
 # The RPC port where the JobManager is reachable.
 
@@ -58,7 +58,7 @@ taskmanager.memory.process.size: 1728m
 
 # The number of task slots that each TaskManager offers. Each slot runs one parallel pipeline.
 
-taskmanager.numberOfTaskSlots: 2
+taskmanager.numberOfTaskSlots: 4
 
 # The parallelism used for programs that did not specify and other parallelism.
 
