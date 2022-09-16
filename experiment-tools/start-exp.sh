@@ -2,7 +2,7 @@
 FLINKROOT=$(cd ..; pwd)
 echo "FLINKROOT: $FLINKROOT"
 USAGE="Usage: start-exp.sh (1/3/5/8)"
-KAFKAIP="10.0.0.171"
+KAFKAIP="flinknode-1" # if service starts on public ip write public ip here
 KAFKA="$KAFKAIP:9092"
 JOBID_REGEX='[0-9a-fA-F]\{32\}'
 
@@ -21,8 +21,8 @@ echo "bin: $bin"
 . "$FLINKROOT"/deploy-scripts/deployflink.sh
 
 # clean all previous kafka topics
-scp -r "$bin"/clear-kafka-topics.sh "ubuntu@$KAFKAIP":kafka/
-ssh "ubuntu@$KAFKAIP" "cd kafka/ && ./clear-kafka-topics.sh $KAFKA"
+scp -r "$bin"/clear-kafka-topics.sh "cc@$KAFKAIP":kafka/
+ssh "cc@$KAFKAIP" "cd kafka/ && ./clear-kafka-topics.sh $KAFKA"
 
 # source config
 . "$bin"/config.sh
@@ -87,13 +87,13 @@ if [ $withTwoSource = true ]; then
     TIMESTAMP=$(date +%s)
     AUCTION_TOPIC='adaptive-checkpoint-'${TIMESTAMP}''
     printf 'kafkaip: auction topic_name: %s\n' "$AUCTION_TOPIC"
-    ssh "ubuntu@$KAFKAIP" "cd kafka/ && bin/kafka-topics.sh --create --topic "$AUCTION_TOPIC" --bootstrap-server "$KAFKA""
+    ssh "cc@$KAFKAIP" "cd kafka/ && bin/kafka-topics.sh --create --topic "$AUCTION_TOPIC" --bootstrap-server "$KAFKA""
 
     # create second topic in kafka
     TIMESTAMP=$(date +%s)
     PERSON_TOPIC='adaptive-checkpoint-'${TIMESTAMP}''
     printf 'kafkaip: person topic_name: %s\n' "$PERSON_TOPIC"
-    ssh "ubuntu@$KAFKAIP" "cd kafka/ && bin/kafka-topics.sh --create --topic "$PERSON_TOPIC" --bootstrap-server "$KAFKA""
+    ssh "cc@$KAFKAIP" "cd kafka/ && bin/kafka-topics.sh --create --topic "$PERSON_TOPIC" --bootstrap-server "$KAFKA""
 
     sleep 2
     # run query
@@ -171,7 +171,7 @@ else
     TIMESTAMP=$(date +%s)
     TOPICNAME='adaptive-checkpoint-'${TIMESTAMP}''
     printf 'kafkaip: bid topic_name: %s\n' "$TOPICNAME"
-    ssh "ubuntu@$KAFKAIP" "cd kafka/ && bin/kafka-topics.sh --create --topic "$TOPICNAME" --bootstrap-server "$KAFKA""
+    ssh "cc@$KAFKAIP" "cd kafka/ && bin/kafka-topics.sh --create --topic "$TOPICNAME" --bootstrap-server "$KAFKA""
 
     sleep 2
     # run query, & guaqi, \ huanhang, pid kill, chmod +x file
@@ -228,19 +228,19 @@ echo "FETCH_TOTAL_TIME: $FETCH_TOTAL_TIME"
 echo "========= start collecting metrics ========="
 cd "$FLINKROOT"/experiment-tools/ || (echo "cd fail" && exit 1)
 python3 flink_connector.py --job_id "$QUERY_ID" --interval "$FETCH_INTERVAL" --total_time "$FETCH_TOTAL_TIME" &
-# collect system metrics
-. connect-for-metrics.sh "$QUERY_ID" "$FETCH_TOTAL_TIME" "$METRICS_FETCH_INTERVAL" &
+## collect system metrics
+#. connect-for-metrics.sh "$QUERY_ID" "$FETCH_TOTAL_TIME" "$METRICS_FETCH_INTERVAL" &
 wait
-
+#
 # collect log
 echo "========== start collecting logs =========="
 . "$bin"/collectlog.sh "$QUERY_ID"
 cd "$FLINKROOT"/experiment-tools/ || (echo "cd fail" && exit 1)
-
-# collect all the files
-
-python3 collect_data.py "$QUERY_ID" "$EXP_NAME" "$DIR_PATH"
-
+#
+## collect all the files
+#
+#python3 collect_data.py "$QUERY_ID" "$EXP_NAME" "$DIR_PATH"
+#
 # clear all jobs and topics
 echo "=========== start clearing jobs and kafka topics ============="
 cd "$FLINKROOT"/experiment-tools/ || (echo "cd fail" && exit 1)
