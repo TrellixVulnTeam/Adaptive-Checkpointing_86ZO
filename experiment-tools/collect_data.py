@@ -218,7 +218,7 @@ class FileParser:
 
     def process_data(self):
         self.parse_latency()
-        self.parse_cpu()
+#         self.parse_cpu()
         self.parse_thr()
         self.parse_ckp()
 
