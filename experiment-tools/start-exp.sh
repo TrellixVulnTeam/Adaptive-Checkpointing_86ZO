@@ -239,7 +239,7 @@ cd "$FLINKROOT"/experiment-tools/ || (echo "cd fail" && exit 1)
 #
 ## collect all the files
 #
-#python3 collect_data.py "$QUERY_ID" "$EXP_NAME" "$DIR_PATH"
+python3 collect_data.py "$QUERY_ID" "$EXP_NAME" "$DIR_PATH"
 #
 # clear all jobs and topics
 echo "=========== start clearing jobs and kafka topics ============="
