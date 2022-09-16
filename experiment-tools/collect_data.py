@@ -226,6 +226,7 @@ class FileParser:
 def main(target_path, src_path, exp_name):
     file_parser = FileParser(src_path, target_path, exp_name)
     file_parser.process_data()
+    print("removing data files")
     shutil.rmtree(src_path)
 
 
@@ -235,5 +236,6 @@ if __name__ == "__main__":
     target_path = sys.argv[3]
     src_path = "./" + query_id
     if not os.path.exists(target_path):
+        print("making data dirs")
         os.makedirs(target_path)
     main(target_path, src_path, exp_name)
