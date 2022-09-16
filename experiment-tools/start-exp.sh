@@ -227,11 +227,10 @@ echo "FETCH_TOTAL_TIME: $FETCH_TOTAL_TIME"
 
 echo "========= start collecting metrics ========="
 cd "$FLINKROOT"/experiment-tools/ || (echo "cd fail" && exit 1)
-python3 flink_connector.py --job_id "$QUERY_ID" --interval "$FETCH_INTERVAL" --total_time "$FETCH_TOTAL_TIME" &
+python3 flink_connector.py --job_id "$QUERY_ID" --interval "$FETCH_INTERVAL" --total_time "$FETCH_TOTAL_TIME"
 ## collect system metrics
 #. connect-for-metrics.sh "$QUERY_ID" "$FETCH_TOTAL_TIME" "$METRICS_FETCH_INTERVAL" &
-wait
-#
+
 # collect log
 echo "========== start collecting logs =========="
 . "$bin"/collectlog.sh "$QUERY_ID"
