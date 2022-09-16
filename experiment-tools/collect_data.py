@@ -105,7 +105,7 @@ class FileParser:
                     task = metrics_info[key]
                     task_name = task['name']
                     throughput_record = task['0.numBytesInPerSecond']
-                    bkp_record = task['bkp_key'] # todo: bkp_key here
+                    bkp_record = task['backpressure']
 #                     task_num_thr = task['0.numRecordsInPerSecond']
                     if os.path.exists(self._target_dir + "/throughput.json"):
                         with open(self._target_dir + "/throughput.json", 'r') as r1:
