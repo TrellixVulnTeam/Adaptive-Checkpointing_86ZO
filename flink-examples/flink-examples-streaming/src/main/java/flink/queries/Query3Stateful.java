@@ -179,7 +179,7 @@ public class Query3Stateful {
                         // If each partition has a committed offset, the offset will be consumed
                         // from the committed offset.
                         // Start consuming from scratch when there is no submitted offset
-                        .setStartingOffsets(OffsetsInitializer.earliest())
+                        .setStartingOffsets(OffsetsInitializer.committedOffsets(OffsetResetStrategy.EARLIEST))
                         .build();
 
         DataStream<Person> persons =

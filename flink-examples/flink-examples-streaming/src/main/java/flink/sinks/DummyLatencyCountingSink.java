@@ -35,7 +35,7 @@ public class DummyLatencyCountingSink<T> extends StreamSink<T> {
     public void processElement(StreamRecord<T> element) throws Exception {
         // super.processElement(element);
         // refer to KafkaTCase.java
-        logger.warn("Record: ", System.currentTimeMillis());
+        logger.warn("Record: %{}, Timestamp: %{}", element.toString(), System.currentTimeMillis());
     }
 
     public DummyLatencyCountingSink(Logger log) {
