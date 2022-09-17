@@ -157,6 +157,7 @@ public class Query3Stateful {
                         // from the committed offset.
                         // Start consuming from earlist when there is no submitted offset
                         .setStartingOffsets(OffsetsInitializer.committedOffsets(OffsetResetStrategy.EARLIEST))
+
                         .build();
 
         DataStream<Auction> auctions =
