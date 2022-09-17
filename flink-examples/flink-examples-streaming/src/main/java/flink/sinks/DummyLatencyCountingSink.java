@@ -40,10 +40,9 @@ public class DummyLatencyCountingSink<T> extends StreamSink<T> {
 
     public DummyLatencyCountingSink(Logger log) {
         super(
-                new SinkFunction() {
-
+                new SinkFunction<T>() {
                     @Override
-                    public void invoke(Object value, Context ctx) {}
+                    public void invoke(T value, Context ctx) {}
                 });
         logger = log;
     }
