@@ -25,6 +25,7 @@ import flink.utils.AuctionSchema;
 import flink.utils.PersonSchema;
 import org.apache.beam.sdk.nexmark.model.Auction;
 import org.apache.beam.sdk.nexmark.model.Person;
+import org.apache.kafka.clients.consumer.OffsetResetStrategy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -136,7 +137,7 @@ public class Query8 {
                         // If each partition has a committed offset, the offset will be consumed
                         // from the committed offset.
                         // Start consuming from scratch when there is no submitted offset
-                        .setStartingOffsets(OffsetsInitializer.earliest())
+                        .setStartingOffsets(OffsetsInitializer.committedOffsets(OffsetResetStrategy.EARLIEST))
                         .build();
         DataStream<Person> persons =
                 env.fromSource(
@@ -159,7 +160,7 @@ public class Query8 {
                         // If each partition has a committed offset, the offset will be consumed
                         // from the committed offset.
                         // Start consuming from scratch when there is no submitted offset
-                        .setStartingOffsets(OffsetsInitializer.earliest())
+                        .setStartingOffsets(OffsetsInitializer.committedOffsets(OffsetResetStrategy.EARLIEST))
                         .build();
         DataStream<Auction> auctions =
                 env.fromSource(
