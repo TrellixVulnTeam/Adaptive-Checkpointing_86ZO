@@ -243,6 +243,12 @@ cd "$FLINKROOT"/experiment-tools/ || (echo "cd fail" && exit 1)
 #
 python3 collect_data.py "$QUERY_ID" "$EXP_NAME" "$DIR_PATH"
 #
+## check if kill taskmanager
+#
+if $KILL_TASKMANAGER ;then
+  (./kill-taskmanager.sh "$KILL_TIME") &
+fi
+#
 # clear all jobs and topics
 echo "=========== start clearing jobs and kafka topics ============="
 cd "$FLINKROOT"/experiment-tools/ || (echo "cd fail" && exit 1)
