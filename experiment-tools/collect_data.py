@@ -105,7 +105,7 @@ class FileParser:
                     task = metrics_info[key]
                     task_name = task['name']
                     throughput_record = task['0.numBytesInPerSecond']
-                    bkp_record = task['bkp_key'] # todo: bkp_key here
+                    bkp_record = task['backpressure']
 #                     task_num_thr = task['0.numRecordsInPerSecond']
                     if os.path.exists(self._target_dir + "/throughput.json"):
                         with open(self._target_dir + "/throughput.json", 'r') as r1:
@@ -218,7 +218,7 @@ class FileParser:
 
     def process_data(self):
         self.parse_latency()
-        self.parse_cpu()
+#         self.parse_cpu()
         self.parse_thr()
         self.parse_ckp()
 
@@ -226,6 +226,7 @@ class FileParser:
 def main(target_path, src_path, exp_name):
     file_parser = FileParser(src_path, target_path, exp_name)
     file_parser.process_data()
+    print("removing data files")
     shutil.rmtree(src_path)
 
 
@@ -235,5 +236,6 @@ if __name__ == "__main__":
     target_path = sys.argv[3]
     src_path = "./" + query_id
     if not os.path.exists(target_path):
+        print("making data dirs")
         os.makedirs(target_path)
     main(target_path, src_path, exp_name)

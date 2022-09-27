@@ -16,7 +16,7 @@ class Flink:
 
     '''
 
-    def __init__(self, endpoint="http://128.31.26.144:8081"):
+    def __init__(self, endpoint="http://129.114.109.235:8081"):
         self._endpoint = endpoint
 
     def get_endpoint(self):
@@ -216,7 +216,7 @@ def main(job_id, interval, total_time):
     repeat = int(total_time/interval)
     metrics_info = {}
     checkpoints_info = {}
-    flink = Flink(endpoint="http://128.31.26.144:8081/")
+    flink = Flink(endpoint="http://129.114.109.235:8081/")
     last_record_checkpoint_id = 1
     job_details = flink.get_job_details(job_id)
     job_plan = flink.get_job_plan(job_id)
@@ -225,6 +225,7 @@ def main(job_id, interval, total_time):
     number_bytes_in_per_second_query = ""
     all_queries_keys = ["0.numBytesInPerSecond", "0.numRecordsInPerSecond"]
     checkpoint_fetch_keys = ["end_to_end_duration", "state_size"]
+    backpressure_key = "backpressure"
 
     for node in nodes_info:
         node_key = node['id']
@@ -232,6 +233,7 @@ def main(job_id, interval, total_time):
         node_value['name'] = node['description']
         for query_key in all_queries_keys:
             node_value[query_key] = []
+        node_value[backpressure_key] = []
         metrics_info[node_key]  = node_value
 
     fail_count = 0
@@ -247,6 +249,9 @@ def main(job_id, interval, total_time):
         for task in job_details['vertices']:
             task_id = task['id']
             task_info = metrics_info[task_id]
+            task_backpressure = flink.get_task_backpressure(job_id, task_id)
+            backpressure_value = get_backpressure_value(task_backpressure)
+            task_info[backpressure_key].append(backpressure_value)
             for query_key in all_queries_keys:
                  query_result = flink.get_task_metrics_details(job_id, task_id, query_key)
                  instant_value = query_result[0]["value"]
@@ -276,6 +281,15 @@ def main(job_id, interval, total_time):
     target_dir = "./" + job_id
     write_to_file(target_dir, metrics_info)
 
+def get_backpressure_value(task_backpressure):
+    subtasks_backpressure = task_backpressure['subtasks']
+    total_value = 0
+    count = 0
+    for subtask in subtasks_backpressure:
+        total_value += subtask['ratio']
+        count += 1
+    return total_value/count
+
 def write_to_file(target_dir, metrics_info):
     if not os.path.exists(target_dir):
         os.makedirs(target_dir)
@@ -290,8 +304,8 @@ def write_to_file(target_dir, metrics_info):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--job_id', type=str)
-    parser.add_argument('--interval', type=int, default=5)
-    parser.add_argument('--total_time', type=int, default=60)
+    parser.add_argument('--interval', type=int, default=3)
+    parser.add_argument('--total_time', type=int, default=30)
     args = parser.parse_args()
 
     main(args.job_id, args.interval, args.total_time)

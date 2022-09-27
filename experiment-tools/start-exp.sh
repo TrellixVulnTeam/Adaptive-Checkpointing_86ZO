@@ -2,7 +2,7 @@
 FLINKROOT=$(cd ..; pwd)
 echo "FLINKROOT: $FLINKROOT"
 USAGE="Usage: start-exp.sh (1/3/5/8)"
-KAFKAIP="flinknode-1" # if service starts on public ip write public ip here
+KAFKAIP="kafka" # if service starts on public ip write public ip here
 KAFKA="$KAFKAIP:9092"
 JOBID_REGEX='[0-9a-fA-F]\{32\}'
 
@@ -95,6 +95,9 @@ if [ $withTwoSource = true ]; then
     printf 'kafkaip: person topic_name: %s\n' "$PERSON_TOPIC"
     ssh "cc@$KAFKAIP" "cd kafka/ && bin/kafka-topics.sh --create --topic "$PERSON_TOPIC" --bootstrap-server "$KAFKA""
 
+    GROUP_AUC="$GROUP-Auction"
+    GROUP_PER="$GROUP-Person"
+
     sleep 2
     # run query
     ( "$FLINK_TARGET"/bin/flink run --detached "$Queryjar" \
@@ -113,10 +116,10 @@ if [ $withTwoSource = true ]; then
      --ckp-adapter-window "$CKP_ADAPTER_WINDOW" \
      --latency-marker "$LATENCY_MARKER_INTERVAL" \
      --auction-kafka-topic "$AUCTION_TOPIC" \
-     --auction-kafka-group "$GROUP" \
+     --auction-kafka-group "$GROUP_AUC" \
      --auction-broker "$KAFKA" \
      --person-kafka-topic "$PERSON_TOPIC" \
-     --person-kafka-group "$GROUP" \
+     --person-kafka-group "$GROUP_PER" \
      --person-broker "$KAFKA"  & ) > "$TEMP_JOBID_STORAGE"
 
     # ensure query is setup before kafkasource
@@ -227,20 +230,19 @@ echo "FETCH_TOTAL_TIME: $FETCH_TOTAL_TIME"
 
 echo "========= start collecting metrics ========="
 cd "$FLINKROOT"/experiment-tools/ || (echo "cd fail" && exit 1)
-python3 flink_connector.py --job_id "$QUERY_ID" --interval "$FETCH_INTERVAL" --total_time "$FETCH_TOTAL_TIME" &
-# collect system metrics
-. connect-for-metrics.sh "$QUERY_ID" "$FETCH_TOTAL_TIME" "$METRICS_FETCH_INTERVAL" &
-wait
+python3 flink_connector.py --job_id "$QUERY_ID" --interval "$FETCH_INTERVAL" --total_time "$FETCH_TOTAL_TIME"
+## collect system metrics
+#. connect-for-metrics.sh "$QUERY_ID" "$FETCH_TOTAL_TIME" "$METRICS_FETCH_INTERVAL" &
 
 # collect log
 echo "========== start collecting logs =========="
 . "$bin"/collectlog.sh "$QUERY_ID"
 cd "$FLINKROOT"/experiment-tools/ || (echo "cd fail" && exit 1)
-
-# collect all the files
-
+#
+## collect all the files
+#
 python3 collect_data.py "$QUERY_ID" "$EXP_NAME" "$DIR_PATH"
-
+#
 # clear all jobs and topics
 echo "=========== start clearing jobs and kafka topics ============="
 cd "$FLINKROOT"/experiment-tools/ || (echo "cd fail" && exit 1)
