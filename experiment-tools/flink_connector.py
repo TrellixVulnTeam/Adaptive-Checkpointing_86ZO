@@ -16,7 +16,7 @@ class Flink:
 
     '''
 
-    def __init__(self, endpoint="http://129.114.109.240:8081"):
+    def __init__(self, endpoint="http://129.114.109.229:8081"):
         self._endpoint = endpoint
 
     def get_endpoint(self):
@@ -216,7 +216,7 @@ def main(job_id, interval, total_time):
     repeat = int(total_time/interval)
     metrics_info = {}
     checkpoints_info = {}
-    flink = Flink(endpoint="http://129.114.109.240:8081/")
+    flink = Flink(endpoint="http://129.114.109.229:8081/")
     last_record_checkpoint_id = 1
     job_details = flink.get_job_details(job_id)
     job_plan = flink.get_job_plan(job_id)
