@@ -232,7 +232,7 @@ echo "FETCH_TOTAL_TIME: $FETCH_TOTAL_TIME"
 #
 if $KILL_TASKMANAGER ;then
   scp -r "$bin"/kill-taskmanager.sh "flinknode-2":~/
-  ssh "flinknode-2" "(./kill-taskmanager.sh $KILL_TIME) &"
+  ssh "flinknode-2" "./kill-taskmanager.sh $KILL_TIME &"
 fi
 
 echo "========= start collecting metrics ========="
