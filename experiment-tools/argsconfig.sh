@@ -9,7 +9,7 @@ LATENCY_MARKER_INTERVAL=60000
 
 EXP_TYPE="exp1"
 
-KILL_TIME="1800" # 900s will kill at around 6min
+KILL_TIME="1020" # 900s will kill at around 6min
 KILL_TASKMANAGER=true
 
 DURATION="1800000" # unit is ms
