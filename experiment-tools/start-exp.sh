@@ -227,6 +227,12 @@ fi
 echo "QUERY_ID: $QUERY_ID"
 echo "FETCH_INTERVAL: $FETCH_INTERVAL"
 echo "FETCH_TOTAL_TIME: $FETCH_TOTAL_TIME"
+#
+## check if kill taskmanager
+#
+if $KILL_TASKMANAGER ;then
+  (./kill-taskmanager.sh "$KILL_TIME") &
+fi
 
 echo "========= start collecting metrics ========="
 cd "$FLINKROOT"/experiment-tools/ || (echo "cd fail" && exit 1)
@@ -242,12 +248,6 @@ cd "$FLINKROOT"/experiment-tools/ || (echo "cd fail" && exit 1)
 ## collect all the files
 #
 python3 collect_data.py "$QUERY_ID" "$EXP_NAME" "$DIR_PATH"
-#
-## check if kill taskmanager
-#
-if $KILL_TASKMANAGER ;then
-  (./kill-taskmanager.sh "$KILL_TIME") &
-fi
 #
 # clear all jobs and topics
 echo "=========== start clearing jobs and kafka topics ============="
