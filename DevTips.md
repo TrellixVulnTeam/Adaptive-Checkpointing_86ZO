@@ -27,5 +27,148 @@ Don't forget to use "source ~/.bashrc" to refresh the settings. Make new datanod
 as dfs.datanode.data.dir in hdfs-sites.xml. Change the replication factor to 3 (need 3 copies of the data). Add masters file in $HADOOP_CONF_DIR with masternode private IP. Add all the "workers" 
 node private IP in "workers" file. When we need a new node use "scp /usr/local/hadoop flinknode-XX:/usr/local/" to install hadoop in that vm. Remove the datanode as well as namenode folders 
 and recreate them. Also change some settings in yarn-site.xml and mapred-site.xml. 
-Refer to 1). https://hadooptutorials.info/2020/10/05/part-1-apache-hadoop-installation-on-single-node-cluster-with-google-cloud-virtual-machine/
-2).https://hadooptutorials.info/2020/10/09/part-2-add-a-new-data-node-on-existing-hadoop-cluster/
+
+1)namenode:
+vi ~/.bashrc
+add the following at the end of the files
+
+export HADOOP_HOME=/usr/local/hadoop
+export PATH=$PATH:$JAVA_HOME/bin
+export PATH=$PATH:$HADOOP_HOME/bin
+export PATH=$PATH:$HADOOP_HOME/sbin
+export JAVA_HOME=/usr/lib/jvm/java-1.8.0-openjdk-amd64
+export HADOOP_CONF_DIR=${HADOOP_HOME}/etc/hadoop
+export HADOOP_CLASSPATH=/usr/lib/jvm/java-1.8.0-openjdk-amd64/lib/tools.jar
+
+source ~/.bashrc
+
+vi $HADOOP_CONF_DIR/hadoop-env.sh
+check if JAVA_HOME has been added, otherwise add 
+export JAVA_HOME=/usr/lib/jvm/java-1.8.0-openjdk-amd64
+
+vi $HADOOP_CONF_DIR/core-site.xml
+change the localhost to the internal ip of the namenode
+
+ vi $HADOOP_CONF_DIR/yarn-site.xml
+ add
+<configuration>
+<property>
+<!-- Site specific YARN configuration properties -->
+   <name>yarn.nodemanager.aux-services</name>
+   <value>mapresuce_shuffle</value>
+</property>
+<property>
+   <name>yarn.nodemanager.aux-service.mapresuce.shuffle.class</name>
+   <value>org.apache.hadoop.mapred.ShuffleHandler</value>
+</property>
+<property>
+   <name>yarn.resourcemanager.hostname</name>
+   <value>flinknode-1</value>
+</property>
+<property>
+   <name>yarn.resourcemanager.webapp.address</name>
+   <value>${yarn.nodemanager.hostname}:5349</value>
+</property>
+<property>
+   <name>yarn.nodemanager.webapp.address</name>
+   <value>${yarn.nodemanager.hostname}:5249</value>
+</property>
+</configuration>
+
+ vi $HADOOP_CONF_DIR/mapred-site.xml
+ add
+<configuration>
+   <property>
+      <name>mapreduce.jobtracker.address</name>
+      <value>flinknode-1:54311</value>
+</property>
+<property>
+      <name>mapreduce.framework.name</name>
+      <value>yarn</value>
+</property>
+</configuration>
+
+ vi $HADOOP_CONF_DIR/hdfs-site.xml
+ add
+<configuration>
+        <property>
+                <name>dfs.replication</name>
+                <value>3</value>
+        </property>
+        <property>
+                <name>dfs.namenode.name.dir</name>
+                <value>file:///usr/local/hadoop/hadoop_data/hdfs/namenode</value>
+        </property>
+        <property>
+                <name>dfs.datanode.data.dir</name>
+                <value>file:///usr/local/hadoop/hadoop_data/hdfs/datanode</value>
+        </property>
+        <property>
+                <name>dfs.webhdfs.enabled</name>
+                <value>true</value>
+        </property>
+</configuration>
+
+mkdir -p $HADOOP_HOME/hadoop_data/hdfs/datanode
+mkdir -p $HADOOP_HOME/hadoop_data/hdfs/namenode
+
+vi $HADOOP_CONF_DIR/masters
+add 
+flinknode-1
+
+vi $HADOOP_CONF_DIR/slaves
+add
+flinknode-1
+flinknode-3
+flinknode-4
+
+vi /etc/hosts
+add all the nodes
+
+hdfs namenode -format
+$HADOOP_HOME/sbin/start-dfs.sh
+$HADOOP_HOME/sbin/start-yarn.sh
+
+jps
+
+2. add more datanode to the namenode
+vi /etc/hosts
+add all the nodes
+
+vi ~/.bashrc
+add the following at the end of the files
+
+export HADOOP_HOME=/usr/local/hadoop
+export PATH=$PATH:$JAVA_HOME/bin
+export PATH=$PATH:$HADOOP_HOME/bin
+export PATH=$PATH:$HADOOP_HOME/sbin
+export JAVA_HOME=/usr/lib/jvm/java-1.8.0-openjdk-amd64
+export HADOOP_CONF_DIR=${HADOOP_HOME}/etc/hadoop
+export HADOOP_CLASSPATH=/usr/lib/jvm/java-1.8.0-openjdk-amd64/lib/tools.jar
+
+source ~/.bashrc
+
+back to namnode, copy the hadoop file to the datanode:
+rsync -auvx /usr/local/hadoop flinknode-1:$HADOOP_HOME
+
+
+vi $HADOOP_CONF_DIR/masters
+add 
+flinknode-1
+
+vi $HADOOP_CONF_DIR/slaves
+add
+flinknode-1
+flinknode-3
+flinknode-4
+
+mkdir -p $HADOOP_HOME/hadoop_data/hdfs/datanode
+mkdir -p $HADOOP_HOME/hadoop_data/hdfs/namenode
+
+hadoop-daemon.sh start datanode
+
+back to namenode
+$HADOOP_HOME/sbin/stop-dfs.sh
+$HADOOP_HOME/sbin/start-dfs.sh
+hdfs dfsadmin -report
+

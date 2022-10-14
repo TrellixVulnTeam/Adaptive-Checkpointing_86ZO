@@ -2,7 +2,7 @@
 FLINKROOT=$(cd ..; pwd)
 echo "FLINKROOT: $FLINKROOT"
 USAGE="Usage: start-exp.sh (1/3/5/8)"
-KAFKAIP="flinknode-1" # if service starts on public ip write public ip here
+KAFKAIP="kafka" # if service starts on public ip write public ip here
 KAFKA="$KAFKAIP:9092"
 JOBID_REGEX='[0-9a-fA-F]\{32\}'
 

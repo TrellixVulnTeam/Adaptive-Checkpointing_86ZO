@@ -29,6 +29,7 @@ do
     ssh "$ip" "mkdir "$HADOOP_HOME"/hadoop_data/hdfs/namenode"
     ssh "$ip" "mkdir "$HADOOP_HOME"/hadoop_data/hdfs/datanode"
     scp -r "$FLINKROOT"/hadoop-scripts/workers "$ip":"$HADOOP_CONF_DIR"/slaves
+    scp -r "$FLINKROOT"/hadoop-scripts/masters "$ip":"$HADOOP_CONF_DIR"/masters
     scp -r "$FLINKROOT"/hadoop-scripts/hdfs-site.xml "$ip":"$HADOOP_HOME"/etc/hadoop/hdfs-site.xml
 done
 
