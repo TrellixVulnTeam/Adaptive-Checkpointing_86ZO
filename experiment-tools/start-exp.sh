@@ -231,7 +231,7 @@ echo "FETCH_TOTAL_TIME: $FETCH_TOTAL_TIME"
 ## check if kill taskmanager
 #
 if $KILL_TASKMANAGER ;then
-  (./kill-taskmanager.sh "$KILL_TIME") &
+  (. "$FLINKROOT"/experiment-tools/kill-taskmanager.sh "$KILL_TIME") &
 fi
 
 echo "========= start collecting metrics ========="
