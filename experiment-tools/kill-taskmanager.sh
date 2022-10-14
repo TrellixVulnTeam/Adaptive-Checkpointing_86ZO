@@ -7,5 +7,7 @@ sleep "$KILL_TIME"
 var=$(jps | grep TaskManagerRunner)
 array=($var)
 pid=${array[0]}
-echo "pid is $pid"
-kill -9 "$pid"
+if [ ! -z "$pid" ]; then
+  echo "pid is $pid"
+  kill -9 "$pid"
+fi
