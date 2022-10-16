@@ -3,6 +3,7 @@ FLINKROOT=$(cd ..; pwd)
 echo $FLINKROOT
 
 QUERY_ID=$1
+EXP=$2
 
 iplist=$(python3 get_sink_ip.py "$QUERY_ID")\
 
@@ -23,5 +24,10 @@ do
   ifname="log"
   mkdir "$FLINKROOT"/experiment-tools/"$QUERY_ID"/"$ifname"
   scp "$ip":"$FLINKROOT"/flink-dist/target/flink-1.14.0-bin/flink-1.14.0/log/*.log "$FLINKROOT"/experiment-tools/"$QUERY_ID"/"$ifname"/
+
+  if [ "$EXP" = "exp2" ] || [ "$EXP" = "EXP2" ]; then
+    ifname="out"
+    scp "$ip":"$FLINKROOT"/flink-dist/target/flink-1.14.0-bin/flink-1.14.0/log/*.out "$FLINKROOT"/experiment-tools/"$QUERY_ID"/"$ifname"/
+  fi
 done
 
