@@ -249,7 +249,7 @@ class FileParser:
 #         self.parse_cpu()
         self.parse_thr()
         self.parse_ckp()
-        if exp_type == "exp2" or exp_type == "EXP2":
+        if self._exp_type == "exp2" or self._exp_type == "EXP2":
             parse_downtime()
 
 
