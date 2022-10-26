@@ -227,6 +227,14 @@ fi
 echo "QUERY_ID: $QUERY_ID"
 echo "FETCH_INTERVAL: $FETCH_INTERVAL"
 echo "FETCH_TOTAL_TIME: $FETCH_TOTAL_TIME"
+#
+## check if kill taskmanager
+#
+if $KILL_TASKMANAGER ;then
+#  scp -r "$bin"/kill-taskmanager.sh "flinknode-2":~/
+#  ssh "flinknode-2" "./kill-taskmanager.sh $KILL_TIME &"
+   "$bin"/kill-taskmanager.sh "$KILL_TIME" &
+fi
 
 echo "========= start collecting metrics ========="
 cd "$FLINKROOT"/experiment-tools/ || (echo "cd fail" && exit 1)
@@ -236,12 +244,12 @@ python3 flink_connector.py --job_id "$QUERY_ID" --interval "$FETCH_INTERVAL" --t
 
 # collect log
 echo "========== start collecting logs =========="
-. "$bin"/collectlog.sh "$QUERY_ID"
+. "$bin"/collectlog.sh "$QUERY_ID" "$EXP_TYPE"
 cd "$FLINKROOT"/experiment-tools/ || (echo "cd fail" && exit 1)
 #
 ## collect all the files
 #
-python3 collect_data.py "$QUERY_ID" "$EXP_NAME" "$DIR_PATH"
+python3 collect_data.py "$QUERY_ID" "$EXP_NAME" "$DIR_PATH" "$EXP_TYPE"
 #
 # clear all jobs and topics
 echo "=========== start clearing jobs and kafka topics ============="

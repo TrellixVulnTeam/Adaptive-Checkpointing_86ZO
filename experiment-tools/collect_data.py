@@ -6,10 +6,11 @@ import random
 
 class FileParser:
 
-    def __init__(self, src_dir, target_dir, exp_name):
+    def __init__(self, src_dir, target_dir, exp_name, exp_type):
         self._src_dir = src_dir
         self._target_dir = target_dir
         self._exp_name = exp_name
+        self._exp_type = exp_type
 
     def parse_latency(self):
         '''
@@ -215,16 +216,45 @@ class FileParser:
                  exp_info[exp_name].pop(random.randrange(len(exp_info[exp_name])))
         return exp_info
 
+    def parse_downtime(self):
+        log_list = os.listdir(self._src_dir+"/out")
+        record_dict = {}
+        downtime = 0
+        for log in log_list:
+            for line in open(self._src_dir+"/out/"+log, "r"):
+                record, time = get_record(line)
+                if record in record_dict:
+                    pre_time = record_dict[record]
+                    downtime = time - pre_time
+                    break
+                dict[record] = time
+
+        target_path = self._target_dir+"/downtime.txt"
+        with open(target_path, 'w') as w:
+            w.write(str(downtime))
+
+
+    def get_record(self, line):
+        first_bracket_pos = line.find('(')
+        second_bracket_pos = line.find(')')
+        record_str = line[first_bracket_pos: second_bracket_pos + 1]
+        timestamp_pos = line.find('Timestamp: ') + len("Timestamp: ")
+        time_str = line[timestamp_pos:]
+        time = int(time_str)
+        return record_str, time
+
 
     def process_data(self):
         self.parse_latency()
 #         self.parse_cpu()
         self.parse_thr()
         self.parse_ckp()
+        if self._exp_type == "exp2" or self._exp_type == "EXP2":
+            parse_downtime()
 
 
-def main(target_path, src_path, exp_name):
-    file_parser = FileParser(src_path, target_path, exp_name)
+def main(target_path, src_path, exp_name, exp_type):
+    file_parser = FileParser(src_path, target_path, exp_name, exp_type)
     file_parser.process_data()
     print("removing data files")
     shutil.rmtree(src_path)
@@ -234,8 +264,9 @@ if __name__ == "__main__":
     query_id = sys.argv[1]
     exp_name = sys.argv[2]
     target_path = sys.argv[3]
+    exp_type = sys.argv[4]
     src_path = "./" + query_id
     if not os.path.exists(target_path):
         print("making data dirs")
         os.makedirs(target_path)
-    main(target_path, src_path, exp_name)
+    main(target_path, src_path, exp_name, exp_type)
