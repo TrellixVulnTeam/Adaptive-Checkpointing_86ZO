@@ -49,6 +49,17 @@ export JAVA_HOME=/usr/lib/jvm/java-1.8.0-openjdk-amd64
 vi $HADOOP_CONF_DIR/core-site.xml
 change the localhost to the internal ip of the namenode
 
+<configuration>
+        <property>
+                <name>hadoop.tmp.dir</name>
+                <value>/usr/local/hadoop/hdfs/tmp</value>
+        </property>
+        <property>
+                <name>fs.defaultFS</name>
+                <value>hdfs://flinknode-1:9000</value>
+        </property>
+</configuration>
+
  vi $HADOOP_CONF_DIR/yarn-site.xml
  add
 <configuration>
@@ -124,6 +135,20 @@ flinknode-4
 
 vi /etc/hosts
 add all the nodes
+127.0.1.1 flinknode-1.novalocal
+127.0.0.1 localhost
+
+# The following lines are desirable for IPv6 capable hosts
+::1 localhost ip6-localhost ip6-loopback
+ff02::1 ip6-allnodes
+ff02::2 ip6-allrouters
+
+10.52.0.252 flinknode-1.novalocal flinknode-1                                       
+10.52.2.212 flinknode-2.novalocal flinknode-2                                       
+10.52.0.2 flinknode-3.novalocal flinknode-3                                         
+10.52.2.250 flinknode-4.novalocal flinknode-4  
+
+cd /usr/local/hadoop/sbin/stop-all.sh
 
 hdfs namenode -format
 $HADOOP_HOME/sbin/start-dfs.sh
@@ -156,7 +181,7 @@ vi $HADOOP_CONF_DIR/masters
 add 
 flinknode-1
 
-vi $HADOOP_CONF_DIR/slaves
+vi $HADOOP_CONF_DIR/slaves(might be workers)
 add
 flinknode-1
 flinknode-3
