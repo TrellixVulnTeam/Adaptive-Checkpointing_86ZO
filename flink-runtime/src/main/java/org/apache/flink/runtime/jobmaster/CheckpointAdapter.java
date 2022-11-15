@@ -37,19 +37,20 @@ public class CheckpointAdapter {
 
         @Override
         public void run() {
+            log.info(interval + "ms passed, calculate once");
             if (history.size() <= 0) {
                 return;
             }
-//            log.info(
-//                    interval
-//                            + "ms passed, calculate a new period, if over allowRange change the checkpoint interval!");
             // find bottleneck of all task. Map keeps the latest metrics
             List<Long> periods = new ArrayList<>(history.values());
+            history.clear(); // clear the window after use the data in this window
             Collections.sort(periods, (x, y) -> (int) (x - y));
             // Find the smallest value in all current tasks(bottleneck) and compare it with the
             // threshold to decide whether to update
             long minPeriod = periods.get(0);
+            log.info("current smallest value is " + minPeriod);
             if (isOverAllowRange(minPeriod)) {
+                log.info( "over range, will change to " + minPeriod + " current time is :" + System.currentTimeMillis());
                 updatePeriod(minPeriod);
             }
         }
