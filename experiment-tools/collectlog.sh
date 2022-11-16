@@ -27,6 +27,7 @@ do
 
   if [ "$EXP" = "exp2" ] || [ "$EXP" = "EXP2" ]; then
     ifname="out"
+    mkdir "$FLINKROOT"/experiment-tools/"$QUERY_ID"/"$ifname"
     scp "$ip":"$FLINKROOT"/flink-dist/target/flink-1.14.0-bin/flink-1.14.0/log/*.out "$FLINKROOT"/experiment-tools/"$QUERY_ID"/"$ifname"/
   fi
 done

@@ -227,7 +227,7 @@ class FileParser:
                     pre_time = record_dict[record]
                     downtime = time - pre_time
                     break
-                dict[record] = time
+                record_dict[record] = time
 
         target_path = self._target_dir+"/downtime.txt"
         with open(target_path, 'w') as w:
@@ -250,7 +250,7 @@ class FileParser:
         self.parse_thr()
         self.parse_ckp()
         if self._exp_type == "exp2" or self._exp_type == "EXP2":
-            parse_downtime()
+            self.parse_downtime()
 
 
 def main(target_path, src_path, exp_name, exp_type):
