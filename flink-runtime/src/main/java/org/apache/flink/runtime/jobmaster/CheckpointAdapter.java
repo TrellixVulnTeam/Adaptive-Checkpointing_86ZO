@@ -109,7 +109,7 @@ public class CheckpointAdapter {
     }
 
     private boolean isOverAllowRange(long period) {
-        long variation = Math.abs((period - baseInterval)) / baseInterval;
+        double variation = (double) Math.abs((period - baseInterval)) / (double) baseInterval;
         return variation > allowRange;
     }
 
