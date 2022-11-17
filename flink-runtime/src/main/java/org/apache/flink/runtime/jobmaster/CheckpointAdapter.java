@@ -95,7 +95,7 @@ public class CheckpointAdapter {
         }
 
         double maxData = (double) (recoveryTime / 1000) * ideal; // ideal: records per second
-        long newPeriod = (long) (maxData / inputRate); // result in milliseconds, input rate (records / million seconds)
+        long newPeriod = (long) (maxData / inputRate) * 1000; // result in milliseconds, input rate (records / million seconds)
         // log.info("New Period: " + newPeriod);
 
         // Get rid of extreme data
